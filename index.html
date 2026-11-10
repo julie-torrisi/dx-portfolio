@@ -1033,7 +1033,7 @@ section[data-slide-id="directive"] .qt-note { font: 400 var(--meta)/1.4 var(--fo
 <div class="stack dl-copy">
 <p class="meta reveal">Building the visual data layer</p>
 <h2 class="d-l reveal r2">I ran the visual audit and built the <span class="b">data layer</span> that made the <span class="l">problem visible.</span></h2>
-<p class="body reveal r2">Before proposing any framework, I audited every user-facing visual across Facebook myself. I sorted them into 11 categories, turning a messy image dump into a structured product schema.</p>
+<p class="body reveal r2">Every visual got a job and a rank: content first, then what interrupts, what can wait, and what stays quiet. When two visuals collide, the higher rank wins.</p>
 <div class="dl-results reveal r3"><p class="meta">What I did</p><p class="dl-cap">Audited every visual by hand and turned an image dump into 11 categories.</p></div>
 </div>
 <div class="notes"><b>Talk track · voice-over only</b><ul><li>Before proposing any framework, I audited every user-facing visual across Facebook myself, and sorted them into 11 categories. That turned a messy image dump into a structured map: what each visual is for, and which one wins when two collide.</li><li>Every visual got a rank: content first, then what interrupts, what can wait, and what stays quiet.</li></ul></div>
@@ -1418,6 +1418,8 @@ section[data-slide-id="directive"] .qt-note { font: 400 var(--meta)/1.4 var(--fo
   /* snap points + keyboard stops share one list */
   let STOPS = [];
   const layoutStops = () => {
+    const keepY = scrollY;   /* DX practice: rebuilding snaps must not move the reader */
+    document.documentElement.style.scrollSnapType = 'none';
     document.querySelectorAll('.snap').forEach(n => n.remove());
     const vh = innerHeight; STOPS = [];
     all.forEach(s => {
@@ -1430,6 +1432,9 @@ section[data-slide-id="directive"] .qt-note { font: 400 var(--meta)/1.4 var(--fo
         const m = document.createElement('i'); m.className = 'snap'; m.style.top = y + 'px'; s.appendChild(m); });
     });
     STOPS.sort((a, b) => a - b); stopsH = document.documentElement.scrollHeight;
+    const near = STOPS.reduce((m, v) => Math.abs(v - keepY) < Math.abs(m - keepY) ? v : m, keepY);
+    window.scrollTo({ top: Math.abs(near - keepY) < 40 ? near : keepY, behavior: 'auto' });
+    document.documentElement.style.scrollSnapType = '';
   };
   let stopsH = 0; /* re-measure whenever the page height changed since the last layout (fonts, images, figures) */
   const freshStops = () => { if (document.documentElement.scrollHeight !== stopsH) layoutStops(); };
