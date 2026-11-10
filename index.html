@@ -64,6 +64,23 @@
 .ns-reel { position: absolute; left: 0; top: 0; width: 100%; height: auto; aspect-ratio: 375 / 310; object-fit: cover; display: block; z-index: 0; }
 .ns-reel ~ img { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
 .dev .screen .ns-reel ~ img { opacity: 1; }
+
+/* DX practice 11/10: brand framework slide (four asset groups drawn to scale, then the Reels audit strip) */
+.bf-grid { display: grid; grid-template-columns: minmax(0, .5fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 72px); align-items: center; position: relative; z-index: var(--ck-z-media); }
+.bf-vis { display: grid; gap: clamp(16px, 2.6svh, 32px); min-width: 0; }
+.bf-fw { margin: 0; container-type: inline-size; display: flex; align-items: flex-end; justify-content: space-between; gap: 3cqw; padding: clamp(16px, 2vw, 28px); border: 1px solid var(--line); border-radius: var(--ck-radius-m); background: color-mix(in srgb, var(--void) 55%, transparent); }
+.bf-g { display: grid; justify-items: center; gap: 1.6cqw; min-width: 0; }
+.bf-lab { font: 400 var(--meta)/1.2 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--mist); white-space: nowrap; padding-top: .9cqw; border-top: 1px solid var(--line); width: 100%; text-align: center; order: 2; }
+.bf-row { display: flex; align-items: flex-end; gap: 1.2cqw; }
+.bf-box { --k: calc(100cqw / 820); width: calc(var(--w) * var(--k)); height: calc(var(--h) * var(--k)); border: 1.5px solid var(--lilac); border-radius: 3px; background: color-mix(in srgb, var(--lilac) 8%, transparent); display: grid; place-items: center; position: relative; }
+.bf-box i { font: 400 var(--meta)/1 var(--font-mono); font-style: normal; color: var(--mist); position: absolute; bottom: calc(100% + .6cqw); white-space: nowrap; }
+.bf-u .bf-box i, .bf-s .bf-box i { font-size: calc(var(--meta) * .85); }
+.bf-b .bf-box i, .bf-i .bf-box i { position: static; color: var(--lilac); }
+.bf-map { margin: 0; }
+.bf-map img { display: block; width: 100%; height: auto; max-width: none; border-radius: var(--ck-radius-m); box-shadow: var(--ck-elevation-2); max-height: 44svh; object-fit: contain; }
+.bf-map figcaption { display: grid; grid-template-columns: 1fr 1fr; margin-top: var(--ck-space-2); font: 400 var(--meta)/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--mist); text-align: center; }
+@media (max-width: 1024px) { .bf-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) { .bf-fw { flex-wrap: wrap; justify-content: space-around; align-items: flex-end; column-gap: 4cqw; row-gap: var(--ck-space-5); } .bf-box { --k: calc(100cqw / 330); } .bf-row { gap: 2cqw; } }
 </style>
 <meta content="cover" name="claude:viewport-fit-sides"/>
 
@@ -1064,6 +1081,22 @@ section[data-slide-id="directive"] .qt-note { font: 400 var(--meta)/1.4 var(--fo
 <div class="notes"><b>Talk track · voice-over only</b><ul><li>Facebook Design Review approved it in June 2025.</li></ul></div>
 </section>
 
+<section data-pass data-board class="slide bf-slide" data-slide-id="brand-framework" data-dim=".4" data-silk="tide" aria-label="Bringing the brand into the app: four asset groups with size rules, and comments in Reels audited against them, current to proposed.">
+<div class="bf-grid">
+<div class="stack">
+<p class="meta reveal">The framework</p>
+<h2 class="d-l reveal r2">Bringing the brand <span class="b">into the app.</span></h2>
+<p class="body reveal r3">Four asset groups, each with a size and a rule for when to use it. Every asset on a screen maps to one.</p>
+</div>
+<div class="bf-vis">
+<figure class="bf-fw" role="img" aria-label="Four asset groups: utility icons at 12, 16 and 24dp; speed bumps at 40, 60 and 132dp; billboards at 16:7 and 16:9; immersive at 9:16."><div class="bf-g bf-u reveal r2"><b class="bf-lab">Utility</b><div class="bf-row"><span class="bf-box" style="--w:12;--h:12"><i>12</i></span><span class="bf-box" style="--w:16;--h:16"><i>16</i></span><span class="bf-box" style="--w:24;--h:24"><i>24</i></span></div></div><div class="bf-g bf-s reveal r3"><b class="bf-lab">Speed bumps</b><div class="bf-row"><span class="bf-box" style="--w:40;--h:40"><i>40</i></span><span class="bf-box" style="--w:60;--h:60"><i>60</i></span><span class="bf-box" style="--w:132;--h:132"><i>132</i></span></div></div><div class="bf-g bf-b reveal r4"><b class="bf-lab">Billboards</b><div class="bf-row"><span class="bf-box" style="--w:120;--h:52.5"><i>16:7</i></span><span class="bf-box" style="--w:120;--h:67.5"><i>16:9</i></span></div></div><div class="bf-g bf-i reveal r5"><b class="bf-lab">Immersive</b><div class="bf-row"><span class="bf-box" style="--w:96;--h:170.7"><i>9:16</i></span></div></div></figure>
+<figure class="bf-map reveal r5" data-plx=".6"><img src="img/asset-map.webp" width="1830" height="890" alt="Comments in Reels audited against the framework: the current sheet, every asset boxed by group, then the proposed sheet." loading="lazy" decoding="async"></figure>
+</div>
+</div>
+<p class="role"><b>What I did</b><span>Started with the highest-traffic surfaces, cut sizes and aspect ratios to one set, and gave every asset group a rule.</span></p>
+<div class="notes"><b>Talk track · voice-over only</b><ul><li>We had too many sizes, colors and styles of icons, illustrations and motion, all inconsistent across the product. So I started with what mattered most: the highest-traffic surfaces, the images people see every day.</li><li>I cut the sizes and aspect ratios down to one clean set, and removed assets wherever the content should come first. That left four asset groups, utility icons, speed bumps, billboards and immersive, each with rules for when to use it.</li><li>Here’s comments in Reels: current on the left, proposed on the right. Every box is an asset that maps to one group. We now had a way to audit and replace at scale.</li></ul></div>
+</section>
+
 <section data-pass class="slide sys-slide" data-slide-id="system" data-dim=".35" data-silk="aurora-turn">
 <figure class="sys-art reveal r3" aria-label="Feed, Profile, Groups and Marketplace screens in the new visual system, overlapping."><div class="sys-crop" data-plx="1.4"><img src="img/newfb-screens.webp" alt="" width="2375" height="2307" loading="lazy" decoding="async"></div></figure>
 <div class="stack sys-copy">
@@ -1074,7 +1107,20 @@ section[data-slide-id="directive"] .qt-note { font: 400 var(--meta)/1.4 var(--fo
 <p class="subtitle reveal r4">A one-time refresh became a process anyone can repeat. The next brand refresh shouldn’t need another audit.</p>
 </div>
 <p class="role"><b>What I did</b><span>Turned visual assets into tokens teams can find, replace and swap at scale.</span></p>
-<div class="notes"><b>Talk track · voice-over only</b><ul><li>Assets became tokens in the design system, on iOS, Android, Web, Mobile Web and FB Lite, named for what they're used for. Find it, replace it, swap it everywhere at once.</li><li>It was adopted, not mandated. Design directors sent their designers to me for review before they shipped. Once the pilot proved it, I handed ownership to the Foundations team for the rollout.</li><li>I made the same move later on Comments: one system that flexes by use case. Friends-and-family and ads got no downvote; everything else was shared. That's how I'd think about bringing DX into the Atlassian Design System: shared foundation, and DX keeps what it truly needs.</li></ul></div>
+<div class="notes"><b>Talk track · voice-over only</b><ul><li>Assets became tokens in the design system, on iOS, Android, Web, Mobile Web and FB Lite, named for what they're used for. Find it, replace it, swap it everywhere at once.</li><li>I made the same move later on Comments: one system that flexes by use case. Friends-and-family and ads got no downvote; everything else was shared. That's how I'd think about bringing DX into the Atlassian Design System: shared foundation, and DX keeps what it truly needs.</li></ul></div>
+</section>
+
+<section data-pass class="slide adopt-slide" data-slide-id="adoption" data-dim=".35" data-silk="tide">
+<div class="stack">
+<p class="meta reveal">Adoption</p>
+<h2 class="d-l reveal r2">Adopted, <span class="l">not mandated.</span></h2>
+<p class="body reveal r2">Teams don’t resist a system they helped build.</p>
+<p class="body reveal r2">I set a high bar for craft. When the work makes their product look better, teams adopt it without a mandate. Design directors sent their designers to me for review before they shipped.</p>
+<p class="body reveal r2">Once the pilot proved it, I handed ownership to the Facebook Foundations team to roll it out across all 11 categories.</p>
+</div>
+<figure data-plx=".6" class="icon-fam reveal r3" role="img" aria-label="One icon system, four families: utility glyphs; user signals and badges (badges, privacy); expressive (reactions, awards and gifts, emoji, high-fidelity icons); animated (education and celebratory)."><div class="if-inner"><p class="if-fams" aria-hidden="true"><span style="--x:0%">Utility</span><span style="--x:18.5%">User signals / badges</span><span style="--x:47%">Expressive</span><span style="--x:88.8%">Animated</span></p><div class="if-row"><img src="img/icon-families.webp" alt="" width="1691" height="124" loading="lazy" decoding="async"><picture class="if-a" style="--x:49.76%;--w:5.7%"><source media="(prefers-reduced-motion: no-preference)" srcset="img/fb/care-anim.webp"><img src="img/fb/care-still.webp" alt="" loading="lazy" decoding="async"></picture><picture class="if-a" style="--x:60.23%;--w:6.7%"><source media="(prefers-reduced-motion: no-preference)" srcset="img/fb/unicorn-anim.webp"><img src="img/fb/unicorn-still.webp" alt="" loading="lazy" decoding="async"></picture><picture class="if-a" style="--x:94.18%;--w:10%"><source media="(prefers-reduced-motion: no-preference)" srcset="img/fb/star-anim.webp"><img src="img/fb/star-still.webp" alt="" loading="lazy" decoding="async"></picture></div><p class="if-tags" aria-hidden="true"><span style="--x:7.75%">Glyphs</span><span style="--x:26.4%">Badges</span><span style="--x:41.2%">Privacy</span><span style="--x:49.8%">Reactions</span><span style="--x:60.2%">Awards Gifts</span><span style="--x:70.8%">Emoji</span><span style="--x:82.5%">High Fidelity icons</span><span style="--x:94.2%">Education Celebratory</span></p></div><p class="if-list"><b>Utility</b> glyphs · <b>User signals / badges</b> badges, privacy · <b>Expressive</b> reactions, awards gifts, emoji, high fidelity icons · <b>Animated</b> education celebratory</p></figure>
+<p class="role"><b>What I did</b><span>Scoped it, built it, proved it, then handed it off so it runs without me.</span></p>
+<div class="notes"><b>Talk track · voice-over only</b><ul><li>It was adopted, not mandated. I set a high bar for craft, and when the work makes their product look better, teams adopt it on their own. Design directors sent their designers to me for review before they shipped.</li><li>One system, four families, from utility glyphs to animated celebration. Once the pilot proved it, I handed ownership to the Foundations team for the rollout.</li></ul></div>
 </section>
 
 <section data-pass class="slide oc-slide" data-slide-id="outcome" data-dim=".2" data-silk="aurora">
