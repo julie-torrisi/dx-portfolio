@@ -138,6 +138,7 @@
   --ck-motion-duration-instant: 100ms;
   --ck-motion-duration-quick: 200ms;
   --ck-motion-duration-standard: 300ms;
+  --ck-motion-duration-flow: 450ms;   /* 11/10 (Julie): the rail bead's one-pull jump across several slides */
   --ck-motion-duration-cinematic: 800ms;
   --ck-motion-duration-reduced: 150ms;
   --ck-motion-duration-hold: 4s;
@@ -559,6 +560,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   font: 400 12.8px/1 var(--font-mono, ui-monospace, monospace); letter-spacing: .08em; text-transform: uppercase; color: var(--pg-text-current);
   opacity: 0; transition: opacity var(--pg-dur-back) var(--pg-ease); }
 .ck-pager.is-tip .ck-pager-tip { opacity: 1; }
+.ck-pager .liq-fade { transition: opacity var(--pg-dur-reduced) var(--pg-ease); }
 .ck-pager-live { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 /* law 6: any key or press finishes whatever is still moving */
 .ck-pager.fin .ck-pager-board, .ck-pager.fin .bead, .ck-pager.fin .s { transition: none; }
@@ -2098,6 +2100,15 @@ html[data-motion="reduce"] .pv-toggle { display: none; }
     var n = parseFloat(v); return isNaN(n) ? fallback : n;
   }
   function reduced() { return root.dataset.motion === 'reduce' || matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  function px(name) { var p = document.createElement('div'); p.style.cssText = 'position:absolute;visibility:hidden;inline-size:var(' + name + ')';
+    root.append(p); var w = p.getBoundingClientRect().width; p.remove(); return w; }
+  function ease(name) {   // the token's cubic-bezier as a function of t
+    var m = getComputedStyle(root).getPropertyValue(name).match(/cubic-bezier\(([^)]+)\)/); if (!m) return function (t) { return t; };
+    var c = m[1].split(',').map(parseFloat), x1 = c[0], y1 = c[1], x2 = c[2], y2 = c[3];
+    function b(a1, a2, s) { return 3 * a1 * s * (1 - s) * (1 - s) + 3 * a2 * s * s * (1 - s) + s * s * s; }
+    return function (t) { if (t <= 0) return 0; if (t >= 1) return 1; var lo = 0, hi = 1, s = t;
+      for (var i = 0; i < 24; i++) { s = (lo + hi) / 2; if (b(x1, x2, s) < t) lo = s; else hi = s; } return b(y1, y2, s); };
+  }
   function chevron(dir) {
     var cells = [[1, 0], [2, 1], [3, 2], [2, 3], [1, 4]], out = '';
     cells.forEach(function (c) { var x = (dir < 0 ? 4 - c[0] : c[0]) * 5 + 2.5, y = c[1] * 5 + 2.5;
@@ -2111,7 +2122,7 @@ html[data-motion="reduce"] .pv-toggle { display: none; }
     var loop = o.loop != null ? !!o.loop : !rail, noun = o.noun || 'Page';
     var acts = (o.acts || []).slice().sort(function (a, b) { return a.start - b.start; });
     var cur = Math.min(items - 1, Math.max(0, o.start | 0));
-    var liquid = !!o.liquid, MARK = tok('--ck-component-pager-mark', 1), CURM = liquid ? 1 : (o.lineCells || tok('--ck-component-pager-markCurrent', 3)), GAP = o.gap || tok('--ck-component-pager-gap', 2);
+    var MARK = tok('--ck-component-pager-mark', 1), CURM = o.lineCells || tok('--ck-component-pager-markCurrent', 3), GAP = o.gap || tok('--ck-component-pager-gap', 2);
     var STEP = MARK + GAP, across1 = o.pair === 'across', fade = o.motion === 'fade';
 
     var el = document.createElement('div');
@@ -2133,7 +2144,7 @@ html[data-motion="reduce"] .pv-toggle { display: none; }
     }
     host.replaceChildren(el);
 
-    var drops = [], dropAt = 0, atFn = null, raf = 0, gooUrl = '', DROPS = 9, svg, board, bead, beads = [], lit = [], pos = [], cells = 0, pitch = 5, vertical = rail, room = Infinity, r = R, pairAcross = false;
+    var liq = null, svg, board, bead, beads = [], lit = [], pos = [], cells = 0, pitch = 5, vertical = rail, room = Infinity, r = R, pairAcross = false;
     function actOf(i) { var a = null; acts.forEach(function (x) { if (x.start <= i) a = x; }); return a; }
 
     function build() {
@@ -2152,9 +2163,13 @@ html[data-motion="reduce"] .pv-toggle { display: none; }
       for (var k = 0; k < items; k++) { pos.push(c); c += STEP; }
       cells = c - GAP + HALF;
       var across = pairAcross ? CURM : MARK;
-      pitch = Math.max(tok('--ck-component-pager-pitchMin', 3),
-        Math.min(tok('--ck-component-pager-pitchDense', 5), Math.floor(room / cells * 4) / 4));
-      r = U * tok('--ck-component-pager-dotDense', .8) / 2;
+      if (o.pitchToken) {   // 11/10 (Julie): the rail reads the dot board's pitch and dot, so every gap is a whole number of board cells
+        pitch = tok(o.pitchToken, 8); r = U * (px(o.dotToken) / pitch) / 2;
+      } else {
+        pitch = Math.max(tok('--ck-component-pager-pitchMin', 3),
+          Math.min(tok('--ck-component-pager-pitchDense', 5), Math.floor(room / cells * 4) / 4));
+        r = U * tok('--ck-component-pager-dotDense', .8) / 2;
+      }
       var W = (vertical ? across : cells) * U, H = (vertical ? cells : across) * U;
       svg = document.createElementNS(NS, 'svg');
       svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('focusable', 'false');
@@ -2172,21 +2187,69 @@ html[data-motion="reduce"] .pv-toggle { display: none; }
       pos.forEach(function (p) { dot(p, 0, 'a', board); });   // ahead: 1 dusk dot per page, no field
       lit = pos.map(function (p) { var g = document.createElementNS(NS, 'g'); dot(p, 0, 's', g); board.append(g); return g; });
       beads = []; bead = null;
-      if (fade) {
+      if (o.liquid) { liq = liquid(); bead = null; }
+      else if (fade) {
         beads = pos.map(function (p) { var g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'bead'); pair(p, g); board.append(g); return g; });
       } else {
-        bead = document.createElementNS(NS, 'g'); bead.setAttribute('class', 'bead');
-        if (liquid) {
-          var fid = 'pg-goo-' + Math.random().toString(36).slice(2, 7), defs = document.createElementNS(NS, 'defs');
-          defs.innerHTML = '<filter id="' + fid + '" filterUnits="userSpaceOnUse" x="' + (-2 * U) + '" y="' + (-2 * U) + '" width="' + (W + 4 * U) + '" height="' + (H + 4 * U) + '" color-interpolation-filters="sRGB">' +
-            '<feGaussianBlur in="SourceGraphic" stdDeviation="' + (r * 1.15) + '" result="b"/>' +
-            '<feColorMatrix in="b" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -10"/></filter>';
-          svg.insertBefore(defs, board); gooUrl = 'url(#' + fid + ')';
-          drops = []; for (var q = 0; q < DROPS; q++) { var p0 = at(pos[cur], 0), c0 = document.createElementNS(NS, 'circle');
-            c0.setAttribute('cx', p0[0]); c0.setAttribute('cy', p0[1]); c0.setAttribute('r', q === 0 ? r : 0); bead.append(c0); drops.push(c0); }
-          dropAt = pos[cur]; atFn = at;
-        } else pair(pos[0], bead);
-        board.append(bead);
+        bead = document.createElementNS(NS, 'g'); bead.setAttribute('class', 'bead'); pair(pos[0], bead); board.append(bead);
+      }
+      // liquid bead (11/10, Julie): at rest one lit-dot circle; while moving it stretches out of its dot, necks, and merges into the next.
+      // A static goo filter (blur + alpha threshold) sits on this blue layer only; the circles move on transform only; the crisp
+      // circles are merged back on top, so the rest state is exactly a lit dot and the lilac and dusk dots never pass through the filter.
+      function liquid() {
+        var K = 5, NECK = [1, .8, .68, .76, .9], gid = 'ck-goo-' + Math.random().toString(36).slice(2, 7);
+        var defs = document.createElementNS(NS, 'defs');
+        defs.innerHTML = '<filter id="' + gid + '" x="-100%" y="-100%" width="300%" height="300%" color-interpolation-filters="sRGB">' +
+          '<feGaussianBlur in="SourceGraphic" stdDeviation="' + (r * .6) + '" result="b"/>' +
+          '<feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -10" result="g"/>' +
+          '<feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+        svg.prepend(defs);
+        var g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'bead liq'); g.setAttribute('filter', 'url(#' + gid + ')');
+        var ghost = document.createElementNS(NS, 'g'); ghost.setAttribute('class', 'bead liq-fade'); ghost.style.opacity = 0;
+        function circ(parent) { var p = at(pos[0], 0), e = document.createElementNS(NS, 'circle');
+          e.setAttribute('cx', p[0]); e.setAttribute('cy', p[1]); e.setAttribute('r', r); e.style.transformBox = 'fill-box'; e.style.transformOrigin = 'center'; parent.append(e); return e; }
+        var parts = []; for (var i = 0; i < K; i++) parts.push(circ(g));
+        var drop = circ(g), old = circ(ghost);
+        board.append(g, ghost);
+        var head = 0, tw = null, hist = [], raf = 0, target = 0, maxSep = r * .95, cell = STEP * U, E = ease('--ck-motion-easing-enter'), LAG = tok('--ck-motion-stagger', 40);
+        function ms(n) { return tok(n, 300); }
+        function put(e, d, s) { e.style.transform = (vertical ? 'translateY(' : 'translateX(') + d + 'px) scale(' + s + ')'; }
+        function rest() { cancelAnimationFrame(raf); raf = 0; tw = null; head = target; hist = [];
+          parts.forEach(function (e) { put(e, target, 1); }); put(drop, target, 1); }
+        function frame(now) {
+          var e = E, lag = LAG;   // read once per move, never per frame (no style recalc in the loop)
+          if (tw) { var k = Math.min(1, (now - tw.t0) / tw.dur); head = tw.from + (tw.to - tw.from) * e(k); }
+          hist.push([now, head]); while (hist.length > 2 && hist[1][0] < now - K * lag) hist.shift();
+          function at_(t) { for (var j = hist.length - 1; j >= 0; j--) if (hist[j][0] <= t) return hist[j][1]; return hist[0][1]; }
+          var p = [head], dir = target >= head ? 1 : -1;
+          for (var i = 1; i < K; i++) { var q = at_(now - i * lag), prev = p[i - 1];
+            if (Math.abs(q - prev) > maxSep) q = prev + Math.sign(q - prev) * maxSep; p.push(q); }
+          var len = Math.abs(p[K - 1] - p[0]), s = Math.min(1, len / ((K - 1) * maxSep));
+          p.forEach(function (d, i) { put(parts[i], d, 1 - s * (1 - NECK[i])); });   // blob · neck · blob: the head leads, the middle thins, the tail still holds its dot
+          put(drop, target, Math.max(0, Math.min(1, 1 - Math.abs(target - head) / cell)));   // the next dot swells to meet it: two drops merge
+          var done = (!tw || now - tw.t0 >= tw.dur) && len < .01 && Math.abs(head - target) < .01;
+          if (done) rest(); else raf = requestAnimationFrame(frame);
+        }
+        return {
+          to: function (d, first) {
+            if (first) { target = d; rest(); return; }
+            if (reduced()) {   // law 10: no stretch. The bead fades out of the old dot and into the new one.
+              put(old, target, 1); ghost.style.transition = 'none'; ghost.style.opacity = 1; g.removeAttribute('filter');
+              g.classList.add('liq-fade'); g.style.transition = 'none'; g.style.opacity = 0; target = d; rest();
+              requestAnimationFrame(function () { requestAnimationFrame(function () {
+                ghost.style.transition = ''; g.style.transition = ''; ghost.style.opacity = 0; g.style.opacity = 1; }); });
+              return;
+            }
+            g.setAttribute('filter', 'url(#' + gid + ')'); g.classList.remove('liq-fade'); g.style.opacity = '';
+            E = ease('--ck-motion-easing-enter'); LAG = tok('--ck-motion-stagger', 40);
+            var steps = Math.abs(d - head) / cell;
+            target = d; tw = { from: head, to: d, t0: performance.now(),
+              dur: steps > 1.01 ? ms('--ck-motion-duration-flow') : ms('--ck-motion-duration-standard') };
+            if (!raf) raf = requestAnimationFrame(frame);
+          },
+          snap: function () { if (raf || tw) rest(); ghost.style.transition = 'none'; ghost.style.opacity = 0; g.style.transition = 'none'; g.style.opacity = '';
+            requestAnimationFrame(function () { ghost.style.transition = ''; g.style.transition = ''; }); }
+        };
       }
       view.replaceChildren(svg);
       var full = (vertical ? H : W) / U * pitch;
@@ -2199,7 +2262,7 @@ html[data-motion="reduce"] .pv-toggle { display: none; }
       if (first) el.classList.add('fin');
       lit.forEach(function (g, k) { var on = !loop && k < cur; for (var n = g.firstChild; n; n = n.nextSibling) n.classList.toggle('on', on); });
       if (fade) beads.forEach(function (g, k) { g.classList.toggle('on', k === cur); });
-      else if (liquid) flow(first || el.classList.contains('fin') || reduced());
+      else if (liq) liq.to((pos[cur] - pos[0]) * U, first);
       else { var d = (pos[cur] - pos[0]) * U; bead.style.transform = vertical ? 'translateY(' + d + 'px)' : 'translateX(' + d + 'px)'; }
       var total = cells * pitch, size = parseFloat(view.style[vertical ? 'blockSize' : 'inlineSize']) || total;
       var off = 0;
@@ -2214,21 +2277,6 @@ html[data-motion="reduce"] .pv-toggle { display: none; }
       if (first) requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.remove('fin'); }); });
     }
 
-    /* Liquid bead (DX practice, 11/10): the head drips out of the current dot, a neck stretches, the trailing drops follow and merge into one round dot on arrival. */
-    function flow(jump) {
-      if (!drops.length) return; cancelAnimationFrame(raf);
-      var from = dropAt, to = pos[cur]; dropAt = to;
-      var place = function (c, v) { var p = atFn(v, 0); c.setAttribute('cx', p[0]); c.setAttribute('cy', p[1]); };
-      var rest = function () { bead.removeAttribute('filter'); drops.forEach(function (c, q) { place(c, to); c.setAttribute('r', q === 0 ? r : 0); }); };
-      if (jump || from === to) { rest(); return; }
-      bead.setAttribute('filter', gooUrl); drops.forEach(function (c, q) { c.setAttribute('r', r * (1.38 - q * .055)); });
-      var dist = Math.abs(to - from) / STEP, T = tok('--ck-motion-duration-standard', 300) * (1.6 + Math.min(dist, 6) * .25), LAG = .06, t0 = performance.now();
-      var e = function (x) { return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
-      var step = function (now) { var k = Math.min(1, (now - t0) / T);
-        drops.forEach(function (c, q) { var s = Math.max(0, Math.min(1, (k - q * LAG) / (1 - (DROPS - 1) * LAG))); place(c, from + (to - from) * e(s)); });
-        if (k < 1) raf = requestAnimationFrame(step); else rest(); };
-      raf = requestAnimationFrame(step);
-    }
     var quiet = 0;
     function go(i, how) {
       var n = loop ? ((i % items) + items) % items : Math.max(0, Math.min(items - 1, i));
@@ -2243,7 +2291,8 @@ html[data-motion="reduce"] .pv-toggle { display: none; }
         var dd = Math.hypot(rr.left + rr.width / 2 - e.clientX, rr.top + rr.height / 2 - e.clientY); if (dd < best) { best = dd; k = j; } });
       return k;
     }
-    function finish() { if (liquid) { cancelAnimationFrame(raf); bead.removeAttribute('filter'); drops.forEach(function (c, q) { var p = atFn(pos[cur], 0); c.setAttribute('cx', p[0]); c.setAttribute('cy', p[1]); c.setAttribute('r', q === 0 ? r : 0); }); } el.classList.add('fin'); requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.remove('fin'); }); }); }
+    if (o.liquid) { addEventListener('keydown', function () { if (liq) liq.snap(); }, true); addEventListener('pointerdown', function () { if (liq) liq.snap(); }, true); }
+    function finish() { if (liq) liq.snap(); el.classList.add('fin'); requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.remove('fin'); }); }); }
 
     if (prev) [prev, next].forEach(function (b) { b.addEventListener('click', function () { go(cur + (+b.dataset.dir), 'arrow'); }); });
     view.addEventListener('click', function (e) { go(nearest(e), 'board'); });
@@ -2285,7 +2334,9 @@ html[data-motion="reduce"] .pv-toggle { display: none; }
   const where = () => { const y = scrollY + innerHeight * .5; let i = 0; while (i + 1 < tops.length && tops[i + 1] <= y) i++; return i; };
   const go = i => scrollTo({ top: tops[i], behavior: reduced() ? 'auto' : 'smooth' });
   measure();
-  const pager = window.CadencePager(nav, { mode: 'rail', liquid: true, items: secs.length, start: where(), acts, noun: 'Slide', onGo: i => go(i) });
+  let jump = null, jumpT = 0;
+  const pager = window.CadencePager(nav, { mode: 'rail', items: secs.length, start: where(), acts, noun: 'Slide', lineCells: 1, liquid: true,
+    pitchToken: '--ck-board-pitch', dotToken: '--ck-board-dot', onGo: i => { jump = i; clearTimeout(jumpT); jumpT = setTimeout(() => { jump = null; }, 2000); go(i); } });
   const live = document.createElement('span'); live.className = 'ck-pager-live'; live.setAttribute('aria-live', 'polite'); nav.append(live);
   const actOf = i => { let a = acts[0]; acts.forEach(x => { if (x.start <= i) a = x; }); return a; };
   let raf = 0, quiet = 0;
@@ -2293,7 +2344,7 @@ html[data-motion="reduce"] .pv-toggle { display: none; }
   nav.dataset.act = actOf(where()).name;
   addEventListener('scroll', () => {
     nav.classList.add('is-active'); clearTimeout(idle); idle = setTimeout(() => nav.classList.remove('is-active'), idleMs());
-    if (!raf) raf = requestAnimationFrame(() => { raf = 0; pager.go(where()); nav.dataset.act = actOf(where()).name; });
+    if (!raf) raf = requestAnimationFrame(() => { raf = 0; const w = where(); if (jump !== null) { if (w !== jump) return; jump = null; } pager.go(w); nav.dataset.act = actOf(w).name; });
     clearTimeout(quiet); quiet = setTimeout(() => { const i = pager.index; live.textContent = `Slide ${i + 1} of ${secs.length}: ${actOf(i).name}`; },
       parseFloat(getComputedStyle(h).getPropertyValue('--ck-motion-duration-hold')) * 1000 / 8);
   }, { passive: true });
