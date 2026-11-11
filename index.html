@@ -975,6 +975,30 @@ section[data-slide-id="directive"] .qt-note { font: 400 var(--meta)/1.4 var(--fo
   .baf-tag { font-size: var(--meta); }
 }
 </style>
+<section data-pass class="slide intro-hero " data-act="Open" data-dim=".2" data-silk="ember" aria-label="An unhealthy obsession with collecting handmade ceramic mugs…">
+<figure class="ih-fig"><img src="img/intro/still-mug-checkered.webp" alt="" decoding="async"></figure>
+<div class="ih-cap"><p class="meta">01 · Mugs</p><p class="ih-text">An unhealthy obsession with collecting handmade ceramic mugs…</p></div>
+</section>
+<section data-pass class="slide intro-hero ih-left" data-act="Open" data-dim=".2" data-silk="ember" aria-label="…but I get so much joy from sipping coffee from one every day.">
+<figure class="ih-fig"><img src="img/intro/still-mug-speckled.webp" alt="" decoding="async"></figure>
+<div class="ih-cap"><p class="meta">01 · Mugs</p><p class="ih-text">…but I get so much joy from sipping coffee from one every day.</p></div>
+</section>
+<section data-pass class="slide intro-hero " data-act="Open" data-dim=".2" data-silk="ember" aria-label="My small daily joy is writing in my Hobonichi Techo with all my Japanese stationery.">
+<figure class="ih-fig"><img src="img/intro/still-hobonichi-weeks-2027.webp" alt="" decoding="async" loading="lazy"></figure>
+<div class="ih-cap"><p class="meta">02 · Stationery</p><p class="ih-text">My small daily joy is writing in my Hobonichi Techo with all my Japanese stationery.</p></div>
+</section>
+<section data-pass class="slide intro-hero ih-left" data-act="Open" data-dim=".2" data-silk="ember" aria-label="You’ll always see me with a cursor claw clip. Support small artists so they can create more of what they love.">
+<figure class="ih-fig"><img src="img/intro/still-clawclip-cursor.webp" alt="" decoding="async" loading="lazy"></figure>
+<div class="ih-cap"><p class="meta">03 · Small artists</p><p class="ih-text">You’ll always see me with a cursor claw clip. Support small artists so they can create more of what they love.</p></div>
+</section>
+<section data-pass class="slide intro-hero " data-act="Open" data-dim=".2" data-silk="ember" aria-label="[Final copy pending]">
+<figure class="ih-fig"><img src="img/intro/still-tamagotchi.webp" alt="" decoding="async" loading="lazy"></figure>
+<div class="ih-cap"><p class="meta">04 · [caption pending]</p><p class="ih-text">[Final copy pending]</p></div>
+</section>
+<section data-pass class="slide intro-hero ih-left" data-act="Open" data-dim=".2" data-silk="ember" aria-label="[Dear New York line, in Julie’s words]">
+<figure class="ih-fig"><img src="img/intro/still-stamp-red.webp" alt="" decoding="async" loading="lazy"></figure>
+<div class="ih-cap"><p class="meta">05 · Small things</p><p class="ih-text">[Dear New York line, in Julie’s words]</p></div>
+</section>
 <section data-pass class="slide title-open" data-act="Open" data-dim=".2" data-silk="ember">
 
 <div class="stack">
@@ -3538,6 +3562,23 @@ b, strong { font-weight: 500; }
 .merged-qb-r .qb-front { left: -6%; top: 50%; }
 @media (max-width: 760px), (max-height: 500px) { .merged-qb-r .qb-a { display: none; } .merged-qb-r { margin-inline: 0; } }
 .merged-qb-r .qb-text { padding: clamp(22px, 2.6vw, 38px) clamp(24px, 3vw, 44px); }
+
+/* DX intro (Julie, 11/11): six hero stills on the title's Ember silk, before slide 1. Photos are whole, never cut out; edges feather into the silk. */
+.intro-hero { align-content: end; overflow: hidden; }
+.intro-hero .ih-fig { position: absolute; z-index: var(--ck-z-media); top: 50%; left: var(--ih-x, 58%); width: min(68vw, 118svh); aspect-ratio: 3 / 2; margin: 0;
+  transform: translate(-50%, -50%) translateY(var(--ih-py, 0px)) scale(var(--ih-s, 1)); will-change: transform; pointer-events: none; }
+.intro-hero .ih-fig img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.intro-hero.ih-left .ih-fig { --ih-x: 42%; }
+.intro-hero .ih-cap { position: relative; z-index: calc(var(--ck-z-media) + 1); max-width: min(30ch, 40vw); }
+.intro-hero.ih-left .ih-cap { margin-left: auto; text-align: right; }
+.intro-hero .ih-text { font-family: var(--font-display); font-size: var(--subtitle); line-height: 1.22; color: var(--mist); margin: 0; text-wrap: pretty; }
+.intro-hero .ih-cap .meta { margin-bottom: .6em; }
+.intro-hero .ih-cap > * { opacity: var(--ih-c, 0); transform: translateY(calc((1 - var(--ih-c, 0)) * 12px)); }
+@media (max-width: 760px), (max-height: 500px) { .intro-hero .ih-fig { width: 92vw; top: 42%; } .intro-hero .ih-cap { max-width: 90vw; } .intro-hero.ih-left .ih-cap { margin-left: 0; text-align: left; } }
+html.has-intro .title-open:not(.ih-built) h1 { visibility: hidden; }
+html.has-intro .title-open:not(.ih-built) .subtitle { opacity: 0; }
+.ih-px { position: absolute; inset: 0; pointer-events: none; z-index: calc(var(--ck-z-media) + 2); }
+@media (prefers-reduced-motion: reduce) { .intro-hero .ih-fig { transform: translate(-50%, -50%); } .intro-hero .ih-cap > * { opacity: 1; transform: none; } }
 </style>
 <script>
 /* A2 (10/29): reveal the title once fonts are ready, or after 1.5s, whichever is first */
@@ -4170,4 +4211,45 @@ section.oc-slide .oc-card > span.lbl-s { font: 400 var(--meta)/1.4 var(--font-bo
 </script>
 <script>/* DX practice: north star reel plays only while on screen, never with reduced motion */
 (()=>{const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;const vs=document.querySelectorAll('.ns-reel');if(rm||!('IntersectionObserver' in window))return;
-const io=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;if(e.isIntersecting){v.play().catch(()=>{})}else v.pause()}),{threshold:.15});vs.forEach(v=>io.observe(v));})();</script></body></html>
+const io=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;if(e.isIntersecting){v.play().catch(()=>{})}else v.pause()}),{threshold:.15});vs.forEach(v=>io.observe(v));})();</script><script>
+/* DX intro (11/11): cinematic push-in + parallax on the hero stills, captions settle in, and the title builds in blocks like the chapter numerals when it's reached */
+(() => { const heroes = [...document.querySelectorAll('.intro-hero')]; if (!heroes.length) return;
+  const h = document.documentElement; h.classList.add('has-intro');
+  const rm = () => matchMedia('(prefers-reduced-motion: reduce)').matches || h.dataset.motion === 'reduce';
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), ease = t => 1 - Math.pow(1 - t, 3);
+  const tick = () => { const vh = innerHeight;
+    heroes.forEach(s => { const r = s.getBoundingClientRect(); if (r.bottom < -vh || r.top > vh * 2) return;
+      const p = clamp(r.top / vh, -1, 1);               /* 0 when the section is in place */
+      const f = s.querySelector('.ih-fig'), c = 1 - clamp(Math.abs(p) * 2.2, 0, 1);
+      if (!rm()) { f.style.setProperty('--ih-s', (1.0 + .07 * ease(1 - clamp(Math.abs(p), 0, 1))).toFixed(4)); f.style.setProperty('--ih-py', (p * vh * -.12).toFixed(1) + 'px'); }
+      s.style.setProperty('--ih-c', c.toFixed(3)); });
+    requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+  /* title: block build, reading order, each block grows 40% → 100% (the numeral language) */
+  const t = document.querySelector('.title-open'); if (!t) return; const h1 = t.querySelector('h1');
+  let built = false;
+  const build = () => { if (built) return; built = true;
+    if (rm()) { t.classList.add('ih-built'); return; }
+    const cv = document.createElement('canvas'); cv.className = 'ih-px'; t.appendChild(cv);
+    const dpr = Math.min(2, devicePixelRatio || 1), tr = t.getBoundingClientRect(); cv.width = tr.width * dpr; cv.height = tr.height * dpr; cv.style.width = tr.width + 'px'; cv.style.height = tr.height + 'px';
+    const off = document.createElement('canvas'); off.width = cv.width; off.height = cv.height; const o = off.getContext('2d');
+    const fs = parseFloat(getComputedStyle(h1).fontSize); o.textBaseline = 'alphabetic';
+    h1.querySelectorAll('.b, .l').forEach(sp => { const r = sp.getBoundingClientRect(), cs = getComputedStyle(sp);
+      o.font = `${fs * dpr}px "Redaction 50"`; o.fillStyle = cs.color; if ('letterSpacing' in o) o.letterSpacing = cs.letterSpacing === 'normal' ? '0px' : (parseFloat(cs.letterSpacing) * dpr) + 'px';
+      const m = o.measureText(sp.textContent), asc = m.fontBoundingBoxAscent || fs * dpr * .8, dsc = m.fontBoundingBoxDescent || fs * dpr * .2;
+      o.fillText(sp.textContent, (r.left - tr.left) * dpr, (r.top - tr.top) * dpr + (r.height * dpr - (asc + dsc)) / 2 + asc); });
+    const CELL = Math.max(3, Math.round(fs * dpr / 17)), d = o.getImageData(0, 0, off.width, off.height).data, cells = [];
+    for (let y = 0; y < off.height; y += CELL) for (let x = 0; x < off.width; x += CELL) { const i = ((Math.min(y + CELL / 2 | 0, off.height - 1)) * off.width + Math.min(x + CELL / 2 | 0, off.width - 1)) * 4;
+      if (d[i + 3] > 90) cells.push({ x, y, c: `rgb(${d[i]},${d[i + 1]},${d[i + 2]})` }); }
+    const cx = cv.getContext('2d'), T0 = performance.now(), DUR = 900;
+    const draw = now => { const k = clamp((now - T0) / DUR, 0, 1), shown = Math.round(k * cells.length); cx.clearRect(0, 0, cv.width, cv.height);
+      for (let i = 0; i < shown; i++) { const c = cells[i], age = clamp((shown - i) / (cells.length * .08 + 1), 0, 1), z = CELL * (.4 + .6 * age);
+        cx.fillStyle = c.c; cx.fillRect(c.x + (CELL - z) / 2, c.y + (CELL - z) / 2, z + .5, z + .5); }
+      if (k < 1) requestAnimationFrame(draw);
+      else { t.classList.add('ih-built'); t.classList.remove('in'); void t.offsetWidth; t.classList.add('in'); setTimeout(() => cv.remove(), 300); } };
+    requestAnimationFrame(draw); };
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting && e.intersectionRatio > .6) (document.fonts ? document.fonts.ready : Promise.resolve()).then(build); }), { threshold: [0, .6, 1] });
+  io.observe(t);
+})();
+</script>
+</body></html>
