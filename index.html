@@ -142,7 +142,7 @@
   --ck-motion-duration-cinematic: 800ms;
   --ck-motion-duration-reduced: 150ms;
   --ck-motion-duration-hold: 4s;
-  --ck-motion-duration-ambient: 24s;
+  --ck-motion-duration-ambient: 12s;   /* DX practice 11/10 (Julie): 24s read as still */
   --mask-ink: #000;        /* mask alpha for the dot reveal, never painted */
   --tilt-shot: -6deg;      /* extra tilt so a screenshot matches the legacy-phones angle (Julie, 10/27) */
   --tilt-flat: -15deg;     /* full tilt for a flat screenshot, to the legacy-phones angle (Julie, 10/27) */
@@ -225,7 +225,7 @@ body { margin: 0; background: var(--void); color: var(--mist); font: 400 var(--b
   html:not([data-motion="reduce"]) .silk-drift { animation: drape var(--ck-motion-duration-ambient) linear infinite alternate; }
 }
 html[data-paused] .silk-drift, html.silk-hidden .silk-drift { animation-play-state: paused; }
-@keyframes drape { from { transform: scale(1.04) translate3d(-1.5%, -1%, 0); } to { transform: scale(1.04) translate3d(1.5%, 1%, 0); } }
+@keyframes drape { from { transform: scale(1.04) translate3d(-2.5%, -1.5%, 0); } to { transform: scale(1.04) translate3d(2.5%, 1.5%, 0); } }
 main { position: relative; z-index: var(--ck-z-content); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .snap { position: absolute; left: 0; width: 1px; height: 1px; scroll-snap-align: start; pointer-events: none; }
@@ -1083,7 +1083,7 @@ section[data-slide-id="directive"] .qt-note { font: 400 var(--meta)/1.4 var(--fo
 <div class="notes"><b>Talk track · voice-over only</b><ul><li>Facebook Design Review approved it in June 2025.</li></ul></div>
 </section>
 
-<section data-pass data-board class="slide bf-slide" data-slide-id="brand-framework" data-dim=".4" data-silk="tide" aria-label="Bringing the brand into the app: four asset groups with size rules, and comments in Reels audited against them, current to proposed.">
+<section data-pass class="slide bf-slide" data-slide-id="brand-framework" data-dim=".4" data-silk="tide" aria-label="Bringing the brand into the app: four asset groups with size rules, and comments in Reels audited against them, current to proposed.">
 <div class="bf-grid">
 <div class="stack">
 <p class="meta reveal">The framework</p>
@@ -1154,7 +1154,7 @@ section[data-slide-id="directive"] .qt-note { font: 400 var(--meta)/1.4 var(--fo
 <div class="notes"><b>Talk track · voice-over only</b><ul><li>Second project: comments. As design lead for Comments, I led a seven-month modernization of public conversation for 3 billion people, across 9 partner teams.</li><li>My role: I wrote the strategy, ran the leadership reviews, ran 3 design rhythms of business, and directed 15 designers.</li></ul></div>
 </section>
 
-<section data-board class="slide sysp-slide" data-slide-id="system-problem" data-dim=".4" data-silk="velvet">
+<section class="slide sysp-slide" data-slide-id="system-problem" data-dim=".4" data-silk="iris">
 <div class="stack">
 <p class="meta reveal">Context</p>
 <h2 class="d-l reveal r2">This wasn’t a product problem. It was a <span class="b">system</span> <span class="l">problem.</span></h2>
@@ -1294,7 +1294,7 @@ section[data-slide-id="directive"] .qt-note { font: 400 var(--meta)/1.4 var(--fo
 <div class="notes"><b>Talk track · voice-over only</b><ul><li>While leading the program, I also got called in when something was on fire. Four fires, four ships, four clean handoffs.</li><li>Creator Messenger for the Head of Facebook: I aligned legal, safety, Messenger and product on one scope, so the deadline held.</li><li>The creator framework for the VP of Design: each stage has entry and exit criteria, so we know a creator's next natural step and can nudge them toward what makes creators successful. When a creator in Explore posts consistently and their followers climb toward Early Success, they're about to need monetization, so that's when we show it. Then I connected the framework to how the AI learns. Same card, different message: a new creator gets an invitation to post, a growing creator sees what they could earn, a creator buried in DMs gets time back.</li><li>And Android text size: sitting with engineering, I found the broken token, and fixing it cleaned up a lot downstream.</li></ul></div>
 </section>
 <!-- DX practice (Julie 11/10): the creator framework + what I'd mock up for DX. Source: Figma "00_Facebook work DUMP" › Creator framework V0.2 -->
-<section class="slide cf-slide" data-board data-dim=".35" data-silk="iris" aria-label="The creator framework, and what I'd mock up for DX">
+<section class="slide cf-slide" data-dim=".35" data-silk="iris" aria-label="The creator framework, and what I'd mock up for DX">
 <div class="stack cf-wrap">
 <p class="meta reveal">The creator framework</p>
 <h2 class="d-l reveal r2">Know where they are. <span class="b">Show</span> the <span class="l">next step.</span></h2>
@@ -1363,6 +1363,7 @@ section.slide[data-slide-id="dx-jobs"] .fires.jobs-table .row > span:nth-child(2
 </div>
 <div class="notes"><b>Talk track · voice-over only</b><ul><li>Here’s how I see DX’s top jobs, and what I do well for each one.</li><li>One, get to the insight fast. I start every surface with: what are the top 3 things this person must do here? Then I design the area around those primary actions and only show information that helps them decide and act. An exec’s jobs might be: is our AI spend paying off, where should we invest, how do we compare. An engineering manager’s: what’s slowing my team this week, what do I raise in our retro or 1:1s, which fix do I make first. Same data underneath, different front door. You can’t design a directory of everything and expect it to feel simple.</li><li>How I’d measure it: time to insight is the time from landing on a page to a confident decision or action, paired with task success so speed doesn’t hide wrong answers. On Comments I told leadership large visual changes take 3 to 6 months to read, because of the novelty effect: you change an icon and people tap it just to see what it is. In my experience, one way to do the same thing across a product makes it easier to use, and engagement goes up.</li><li>Two, show what needs attention. Simplicity isn’t just showing less, it’s knowing what deserves attention right now. Signals about teams and systems, never individuals, because trust is DX’s brand.</li><li>Three, trustworthy AI. Show your work: every answer links to the data, the metric definition and the time range. Answer only from data DX has, and say plainly when the data is thin or survey and system data disagree. On Comments I argued against an always-on AI summary; leadership adopted trust first, then depth on demand. Models add. They don’t cut. The cut is human.</li><li>Four, one system. That’s the Atlassian Design System migration: tokens first, a pilot, then a milestone rollout, the way I ran the Visual Asset Framework.</li><li>Five, live data. At Goldman we worked with live market data and dense charts. Every real-time call costs money and slows the load, so we designed what loads first, what loads on demand, and what never needs to be real time.</li></ul></div>
 </section>
+
 
 <section class="slide center gl-slide" data-dim=".45" data-silk="bloom" aria-label="What I bring">
 <div class="stack gl-stack">
