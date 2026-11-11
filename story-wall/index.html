@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Story Wall v16 · Julie Torrisi-Coffey</title>
+<style>
+/* Story Wall v16 (dark). Rules: Story-Wall_rules.md (v16 edit 11/11: each comment shows Blueprint's Like + dislike, no cuff on the dislike).
+   v15 (11/11):
+   v15: no empty boxes (every cell holds a real piece: glimmers, Julie's July landscapes, icons, stickers), glimmers loop where a box shows only the glimmer,
+   Eduardo picks Love, Julie turns the switch on, Time in comments fills bar by bar, the paper-plane send icon replaces the thumbs-up, the brand bento is back,
+   app icons sit together in two small containers, the hanging post has its meta beside the name.
+   v14: glimmers show from the moment a tile arrives (and on the first frame), three tiles build at once, cursors show first names, looping tiles never touch.
+   v13: every chart is its own tile in its own color (no color cycling), charts spread across the loop, at most two tiles animate at once, slower builds,
+   Figma cursors from the Comments-Wall file at 1.5×, the seven Slide Reactions as small static tiles, the hanging card has no visible nail.
+   9 rows · 92 px units · 20 px gaps (9b, 27). Components stay at their original size (20, 7): tiles grow, components never scale.
+   The component sits on its card with the same 24 px on all four sides; clips set their own equal pad. One component set per screen (4a).
+   Entry (10): shell → glow once → glimmer where Blueprint has one (21, 28) → build in pieces → hold or one slow loop. */
+:root{
+  --wall:#1F1E21;--tile:#24232A;--card:#252728;
+  --blue:#3C88FF;--lilac:#A873FF;--mist:#B0B0C2;           /* Cadence kit (deck) */
+  --ck-glow-warm:#FFB224;                                   /* rule 22: amber, rarely used. SYSTEM GAP: not in the kit yet */
+  --out-bold:cubic-bezier(.2,.8,.2,1);--in-practical:cubic-bezier(.4,0,1,1);--inout-bold:cubic-bezier(.6,0,.2,1);
+  --spring:cubic-bezier(.34,1.56,.64,1);
+  --bp-enter:cubic-bezier(.14,1,.34,1);--bp-exit:cubic-bezier(.45,.1,.2,1)}  /* Motion.swift */
+@property --ga{syntax:'<angle>';inherits:false;initial-value:0deg}
+html,body{margin:0;height:100%;background:var(--wall);overflow:hidden}
+#stage{position:fixed;inset:0}
+#track{position:absolute;left:0;top:0;will-change:transform}
+.col{position:absolute;left:0;top:0}
+.t{position:absolute;border-radius:20px;background:var(--tile);box-shadow:0 10px 30px rgba(0,0,0,.22)}
+/* glow: blue → lilac → mist with a rare amber stop (22); one light source, gaps on some sides; in 150 · hold 450 · out 650, drifts 40°, never loops */
+.t::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;opacity:0;
+  background:conic-gradient(from var(--ga),transparent 0deg 18deg,var(--blue) 48deg,var(--lilac) 92deg,var(--mist) 128deg,transparent 170deg 232deg,var(--blue) 262deg,var(--lilac) 300deg,transparent 334deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.t.warm::after{background:conic-gradient(from var(--ga),transparent 0deg 18deg,var(--blue) 48deg,var(--lilac) 92deg,var(--ck-glow-warm) 132deg,transparent 172deg 232deg,var(--blue) 262deg,var(--mist) 300deg,transparent 334deg)}
+.t.glow::after{animation:glow 1250ms linear forwards}
+@keyframes glow{0%{opacity:0;--ga:0deg;animation-timing-function:var(--out-bold)}12%{opacity:1}48%{opacity:1;animation-timing-function:var(--in-practical)}100%{opacity:0;--ga:40deg}}
+.in{position:absolute;display:grid;place-items:center;border-radius:14px;opacity:0;clip-path:inset(0 0 100% 0 round 14px);
+  transition:opacity .4s var(--out-bold),clip-path .7s var(--out-bold)}
+.in.card{background:var(--card);box-shadow:0 8px 22px rgba(0,0,0,.35)}
+.t.built .in,.t.loading .in{opacity:1;clip-path:inset(0 0 0 0 round 14px)}
+.in.bare{clip-path:none;border-radius:0}.t.built .in.bare{clip-path:none}
+.c{position:relative;display:block}
+.c img,.c video{display:block}
+.shadow{border-radius:14px;box-shadow:0 8px 22px rgba(0,0,0,.35);overflow:hidden}
+.stack>*{opacity:0;clip-path:inset(0 100% 0 0);transition:opacity .35s var(--out-bold),clip-path .5s var(--out-bold)}
+.stack>.on{opacity:1;clip-path:inset(0 0 0 0)}
+.swap{position:relative}.swap>*{transition:opacity .35s var(--out-bold)}.swap>.alt{position:absolute;inset:0;opacity:0}
+.swap.b>.alt{opacity:1}.swap.b>.base{opacity:0}
+.pop{opacity:0;transform:scale(.55);transition:opacity .3s var(--out-bold),transform .45s var(--out-bold)}
+.pop.on{opacity:1;transform:none}
+.wm{background:#fff;border-radius:14px;display:grid;place-items:center}
+.mo{display:grid;grid-template-columns:110px 110px 1fr;grid-template-rows:1fr 1fr;gap:8px;width:376px;height:228px}
+.mo>div{border-radius:12px;overflow:hidden;display:grid;place-items:center;position:relative}
+.m1{background:#0A0A0A;grid-row:1;grid-column:1}.m2{background:#0866FF;grid-row:1;grid-column:2}
+.m3{background:#F0F2F5;grid-row:1/3;grid-column:3}
+.m4{grid-column:1/3;grid-row:2;background:#0866FF;background-image:radial-gradient(rgba(255,255,255,.35) 1.4px,transparent 1.6px);background-size:16px 16px}
+.mo .p{opacity:0;transform:scale(.6);transition:opacity .3s var(--out-bold),transform .45s var(--out-bold)}.mo .p.on{opacity:1;transform:none}
+/* count-ups: covers sit over the exported digits while the live number counts, then lift to show the real pixels */
+.cv{position:absolute;background:var(--card);font-variant-numeric:tabular-nums;white-space:nowrap;
+  font-family:-apple-system,"SF Pro Text","SF Pro",system-ui,sans-serif}
+/* count-up variant "tick" (23): +1 rolls the digits up, old value out the top, new value in from below */
+.tick{position:absolute;background:var(--card);overflow:hidden;font:400 15px/17px -apple-system,"SF Pro Text","SF Pro",system-ui,sans-serif;color:rgb(176,179,184);font-variant-numeric:tabular-nums;--tx:0px;--ty:0px}
+.tick>i{display:block;font-style:normal;height:17px;padding-left:2px;transform:translate(var(--tx),var(--ty));transition:transform .3s var(--bp-enter)}
+.tick.go{--ty:-17px}.tick.mv{--tx:16px}
+.wave{position:absolute;left:109px;top:36px;width:226px;height:23px;background:#0C5CFF;opacity:0;transition:opacity .15s}
+.wave.on{opacity:1}.wave>img{position:absolute;left:0;top:0;opacity:0;transition:opacity .09s linear}.wave>img.on{opacity:1}
+.rpop{position:absolute;pointer-events:none;width:44px;height:44px;opacity:0}
+.rpop.go{animation:rpop 1.1s var(--spring) forwards}
+@keyframes rpop{0%{opacity:0;transform:translate(-50%,0) scale(.3)}25%{opacity:1;transform:translate(-50%,-26px) scale(1.15)}70%{opacity:1;transform:translate(-50%,-34px) scale(1)}100%{opacity:0;transform:translate(-50%,-44px) scale(.9)}}
+/* cursors: one at a time, slow enough to read (16) */
+.cur{position:fixed;left:0;top:0;z-index:50;pointer-events:none;will-change:transform}
+/* Comments-Wall Figma cursor (Cursor · Name, 15:4787 …) at 1.5×: arrow 26 → 39 (svg 29.9 → 44.8), label pill 38 → 57, 12 → 18 radius, Inter Semi Bold 20 → 30 */
+.cur img{position:absolute;left:0;top:0;width:44.8px;height:44.7px;display:block;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));transition:transform .14s;transform-origin:8px 7px}
+.cur.press img{transform:scale(.82)}
+.cur b{position:absolute;left:37.5px;top:37.5px;height:57px;box-sizing:border-box;padding:10.5px 15px;border-radius:18px;font:600 30px/36px Inter,-apple-system,"SF Pro",system-ui,sans-serif;color:#fff;white-space:nowrap}
+.cur i{position:absolute;left:-12px;top:-13px;width:40px;height:40px;border-radius:50%;border:3px solid var(--cc);opacity:0}
+.cur i.go{animation:ring .5s var(--out-bold)}@keyframes ring{0%{opacity:.9;transform:scale(.3)}100%{opacity:0;transform:scale(1.8)}}
+/* Blueprint glimmer: pulses until the real component resolves */
+.gl{animation:glp 1.1s cubic-bezier(.45,0,.55,1) infinite alternate}@keyframes glp{from{opacity:1}to{opacity:.45}}
+/* v15 bento (brand board): care · f · rock-on · like · fa */
+.bo{display:grid;grid-template-columns:96px 96px 172px;grid-template-rows:96px 64px 92px;gap:8px;width:380px;height:268px}
+.bo>div{border-radius:12px;overflow:hidden;display:grid;place-items:center;position:relative}
+.b1{background:#0A0A0A;grid-row:1;grid-column:1}.b2{background:#fff;grid-row:1;grid-column:2}.b3{background:#F0F2F5;grid-row:1/3;grid-column:3}
+.b4{grid-column:1/3;grid-row:2/4;background:#0866FF;background-image:radial-gradient(rgba(255,255,255,.35) 1.4px,transparent 1.6px);background-size:16px 16px}
+.b5{grid-column:3;grid-row:3;background:#0866FF}
+.b5 i{position:absolute;left:-14px;top:-30px;width:512px;height:92px;background:#fff;-webkit-mask:url(v9/wordmark-xl.png) 0 0/512px 92px no-repeat;mask:url(v9/wordmark-xl.png) 0 0/512px 92px no-repeat;transform:scale(1.9);transform-origin:0 0}
+.bo .p{opacity:0;transform:scale(.6);transition:opacity .3s var(--out-bold),transform .45s var(--out-bold)}.bo .p.on{opacity:1;transform:none}
+.apps{display:grid;grid-template-columns:80px 80px;gap:12px}
+.photo{border-radius:12px;display:block}
+.ico{display:flex;align-items:center;justify-content:center;gap:22px;height:100%}
+.gsw>.base{display:grid;align-items:center;height:100%}
+/* chart tiles: one tile per chart component, its color styles take turns in place (4a) */
+.cst{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .15s var(--bp-exit)}
+.cst.on{opacity:1;transition:opacity .28s var(--bp-enter) .15s}
+.ov{position:absolute;inset:0}
+.sw8{position:absolute}
+.glh{position:absolute;left:0;top:0;width:375px;height:40px;background:var(--card);transition:opacity .28s var(--bp-enter)}   /* opaque under the pulse so the real header never shows through */
+.glh.off{opacity:0!important;animation:none}
+/* Blueprint pressed state (Pressed State page): "Non Media Pressed on Dark" white 30% overlay, FDSButton scale .97, 100 ms in (15) */
+.bpress{position:absolute;border-radius:8px;transition:transform .1s var(--bp-enter)}
+.bpress::after{content:"";position:absolute;inset:0;border-radius:inherit;background:rgba(255,255,255,.3);opacity:0;transition:opacity .1s var(--bp-enter)}
+.bpress.down{transform:scale(.97)}.bpress.down::after{opacity:1}
+.bpress.light::after{background:rgba(70,72,75,.15)}      /* "Non Media Pressed" #46484B 15% on light surfaces (mic) */
+.bpress.ghost{background:none}
+/* v15: the card shows behind a pressed button as it shrinks, so its edges never double up (Jeremy's tap on View, 11/11) */
+.t.loading:not(.built) .chart .cst[data-i="0"]{opacity:1}.t:not(.built) .chart .ov{visibility:hidden}.t:not(.built) .chart .cv{color:transparent}   /* v15: a chart waiting its turn shows its empty state and header glimmer, never a blank card */
+.bunder{position:absolute;background:#333334;border-radius:8px;opacity:0}.bunder:has(+ .bpress.down){opacity:1}
+.pressable{transition:transform .1s var(--bp-enter)}.pressable.down{transform:scale(.97)}
+/* reaction picker: Julie's prototype spec (FDSReactionBar.swift) in dark mode */
+.rx{position:relative;width:334px;height:200px}
+.ufiw{position:absolute;left:0;bottom:0;width:186px;height:44px}
+.ufiw img{position:absolute;left:0;top:0;transition:opacity .28s var(--bp-enter)}
+.ufiw .haha{opacity:0}.rx.sel .ufiw .haha{opacity:1}.rx.sel .ufiw .def{opacity:0}
+.uprs{position:absolute;left:2.5px;top:4px;width:76px;height:36px;border-radius:8px;background:rgba(255,255,255,.3);opacity:0;transition:opacity .1s var(--bp-enter)}
+.rx.pr .uprs{opacity:1}
+.dock{position:absolute;left:2.5px;bottom:48px;display:flex;align-items:flex-end;gap:6px;padding:6px;height:40px;background:#333334;box-shadow:inset 0 0 0 1px rgba(255,255,255,.05),0 2px 8px rgba(0,0,0,.1);border-radius:999px;
+  transform-origin:24px 100%;opacity:0;transform:scale(.8);transition:opacity .2s var(--bp-enter),transform .2s var(--bp-enter),height .28s var(--bp-enter)}
+.rx.open .dock{opacity:1;transform:none}
+.rx.closing .dock{transition:opacity .15s var(--bp-exit),transform .15s var(--bp-exit)}
+.rx.hi .dock{height:34px}
+.ri{position:relative;width:40px;height:40px;flex:none;transition:width .28s var(--bp-enter),height .28s var(--bp-enter)}
+.ri img{position:absolute;left:50%;bottom:0;width:100%;height:auto;transform:translateX(-50%);transition:width .28s var(--bp-enter),bottom .28s var(--bp-enter)}
+.ri b{position:absolute;left:50%;bottom:126px;transform:translateX(-50%) scale(.6);opacity:0;white-space:nowrap;padding:6px 8px;border-radius:999px;background:rgba(0,0,0,.8);color:#fff;font:600 13px/1 -apple-system,"SF Pro Text","SF Pro",system-ui,sans-serif;transition:opacity .28s var(--bp-enter),transform .28s var(--bp-enter)}
+.rx.hi .ri{width:34px;height:34px}
+.rx.hi .ri.h{width:80px;height:34px}
+.ri.h img{width:80px!important;bottom:40px}
+.ri.h b{opacity:1;transform:translateX(-50%) scale(1)}
+/* star rating (12): each star fills in, grows slightly, settles back to its original size */
+.star{position:relative;width:175px;height:55px}
+.star .sx{position:absolute;width:16px;height:16px;opacity:0;transform:scale(.4)}
+.star .sx.on{animation:sfill .52s var(--bp-enter) forwards}
+@keyframes sfill{0%{opacity:0;transform:scale(.4)}55%{opacity:1;transform:scale(1.18)}100%{opacity:1;transform:scale(1)}}
+.star .sfull{position:absolute;left:0;top:0;opacity:0;transition:opacity .2s var(--bp-enter)}.star.done .sfull{opacity:1}
+/* bling string (30): one of the seven reactions joins the cluster with a pop, the count ticks up */
+.bl{position:relative;width:375px;height:36px}
+.bl>img{position:absolute;left:0;top:0;transition:opacity .15s var(--bp-exit)}
+.bl .bf{opacity:0}.bl.fin .bf{opacity:1}
+.bpop{position:absolute;left:44px;top:10px;width:16px;height:16px;opacity:0;transform:scale(.3)}
+.bpop.go{animation:bpop .6s var(--spring) forwards}
+@keyframes bpop{0%{opacity:0;transform:scale(.3)}60%{opacity:1;transform:scale(1.25)}100%{opacity:1;transform:scale(1)}}
+/* hanging card (3): the post swings as if from a nail just above it; the nail is never shown (11/10) */
+.hang{position:relative;width:295px;height:477px;transform-origin:50% -36px}
+.hang img{position:absolute;left:0;top:0;border-radius:12px;box-shadow:0 12px 28px rgba(0,0,0,.45)}
+.hang.go{animation:swing 1.6s linear forwards}
+@keyframes swing{0%{transform:rotate(0)}14%{transform:rotate(3deg)}36%{transform:rotate(-2.1deg)}56%{transform:rotate(1.2deg)}74%{transform:rotate(-.5deg)}88%{transform:rotate(.18deg)}100%{transform:rotate(0)}}
+.dark-ph video{filter:invert(1) hue-rotate(180deg)}       /* 18: dark-mode placeholder until Julie's new keyboard recording */
+@media (prefers-reduced-motion:reduce){.t.glow::after{animation:none}.hang.go{animation:none}}
+</style></head><body><div id="stage"><div id="track"></div></div>
+<script>
+const SPEED_H=0.06,U=92,G=20,ROWS=9,PAD=24;
+const V='v9/',V11='v11/',V12='v12/',V15='v15/',V16='v16/',BP='bp/',FB='fb/';
+const px=n=>n*U+(n-1)*G;                       /* units → px: 1=92 2=204 3=316 4=428 5=540 6=652 7=764 8=876 9=988 */
+const img=(s,w,h,cls='',st='')=>`<img class="${cls}" src="${s}" width="${w}" height="${h}" style="${st}" alt="">`;
+/* clips: the box crops the video at its native pixels so the tile keeps equal padding; nothing scales */
+const vid=(s,w,h,extra='',attr='')=>`<div style="position:relative;width:${w}px;height:${h}px;overflow:hidden;border-radius:14px" class="vbox" ${attr}><video src="${s}" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);object-fit:none" muted playsinline loop preload="auto"></video>${extra}</div>`;
+
+/* Chart styles from the Blueprint Data page, dark mode, recolored with Blueprint data-viz colors (8–11). */
+const NL=(s,x,y,w,h,fs,c,al='left',fw=400)=>({s,x,y,w,h,fs,c,al,fw});
+const HI='242,244,247',LO='176,179,184';
+const GROUPS=[[36,85],[105,155],[175,225],[245,295],[315,364]];
+const DONUT_N=[
+ [['61%',105.5,103,30,11,'R'],['4,218',103.5,122,32,8,'R'],['39%',239.5,103,33,11],['2,697',239.5,122,33,8]],
+ [['58%',102.5,111,33,11,'R'],['42%',239.5,111,33,11]],
+ [['67%',139.5,177,32,11,'R'],['8,312',140.5,196,31,8,'R'],['33%',203.5,177,33,11],['4,094',203.5,196,34,8]],
+ [['54%',138.5,177,33,11,'R'],['46%',203.5,177,33,11]],
+ [['52%',77,177,32,11],['3,604',77,196,34,8],['31%',154,177,30,11],['2,149',154,196,32,8],['17%',243,177,29,11],['1,178',243,196,29,8]],
+ [['48%',86.5,177,33,11],['37%',163.5,177,32,11],['15%',240.5,177,30,11]]];
+const DH=[189,189,245,229,245,229];
+const PBC_V=[['1,284','742','391','126','48'],['2,316','1,408','655','212'],['918','436','87'],['4,120','2,765'],['1,873'],['151','49','22','9','5'],['212','88','31','12'],['97','40','13'],['64','19'],['38']];
+const PBC_H=[127,104,81,58,35,127,104,81,58,35];
+const CH={
+ bars:[
+  ...[[248,216,[['40%',26,27],['43%',139,27],['17%',235,24]]],[204,172,[['40%',26,27],['44%',125,27],['16%',224,25]]],[228,196,[['44%',26,27],['36%',111,27],['20%',210,26]]]].map(([h,base,leg],i)=>(
+   {img:V12+'bar-'+i+'.png',e:V12+'bar-'+i+'-e.png',w:375,h,hdr:1,rv:GROUPS.map(([a,b])=>({t:'up',x0:a,x1:b,y0:88,y1:base})),n:leg.map(([s,x,w])=>NL(s,x,51,w,8,12,HI))})),
+  {img:V12+'bar-3.png',e:V12+'bar-3-e.png',w:375,h:210,hdr:1,rv:[107,149,191].map(y=>({t:'lr',x0:12,x1:276,y0:y,y1:y+11})),
+   n:[NL('48%',26,51,27,8,12,HI),NL('33%',129,51,27,8,12,HI),NL('19%',235,51,25,8,12,HI),{...NL('12,480',291,107,48,11,15,HI,'right'),r:0},{...NL('10,215',292,149,45,11,15,HI,'right'),r:1},{...NL('8,532',291,191,40,11,15,HI,'right'),r:2}],seq:1}],
+ pbc:PBC_V.map((vals,i)=>({img:V12+'pbc-'+i+'.png',e:V12+'pbc-'+i+'-e.png',w:375,h:PBC_H[i],rv:vals.map((v,r)=>({t:'lr',x0:77,x1:310,y0:13+23*r,y1:22+23*r})),
+   n:vals.map((v,r)=>NL(v,318,12+23*r,44,12,15,LO,'right'))})),
+ line:[[36,327],[43,320],[36,327],[43,320],[43,320],[44,319]].map(([x,w],i)=>({img:V12+'line-'+i+'.png',e:V12+'line-'+i+'-e.png',w:375,h:192,hdr:1,rv:[{t:'lr',x0:x-4,x1:x+w+4,y0:56,y1:152}],n:[]})),
+ donutc:DONUT_N.map((ns,i)=>({img:V12+'donut-'+i+'.png',e:V12+'donut-'+i+'-e.png',w:375,h:DH[i],hdr:1,rv:[{t:'sweep',x0:147,y0:85,x1:228,y1:166}],
+   n:ns.map(([s,x,y,w,h,al])=>NL(s,x,y,w,h,h>9?15:12,h>9?HI:LO,al?'right':'left'))})),
+};
+/* v13: one chart per tile, one color per tile; neighbouring charts never share a color (11/10) */
+const ONE={barsA:['bars',0],lineA:['line',3],pbcA:['pbc',0],donutA:['donutc',1],barsB:['bars',3],lineB:['line',2],pbcB:['pbc',6],donutB:['donutc',5]};   /* v14: horizontal bar and side-legend donut back on the wall */
+for(const [k,[f,i]] of Object.entries(ONE))CH[k]=[CH[f][i]];
+const chartHTML=k=>{const S=CH[k],W=Math.max(...S.map(s=>s.w)),H=Math.max(...S.map(s=>s.h));
+ return `<div class="chart" data-ch="${k}" style="position:relative;width:${W}px;height:${H}px">${S.map((s,i)=>`<div class="cst" data-i="${i}" style="width:${s.w}px;height:${s.h}px">${img(s.e,s.w,s.h)}
+  ${s.rv.map((r,j)=>r.t==='sweep'?`<div class="ov sw8" data-j="${j}" style="left:${r.x0}px;top:${r.y0}px;width:${r.x1-r.x0}px;height:${r.y1-r.y0}px;background:url(${s.img}) -${r.x0}px -${r.y0}px no-repeat"></div>`:`<div class="ov" data-j="${j}" style="background:url(${s.img}) no-repeat"></div>`).join('')}
+  ${s.n.map(n=>`<div class="cv" data-count="${n.s}"${n.r!=null?` data-r="${n.r}"`:''} style="left:${n.x-2}px;top:${n.y-3}px;width:${n.w+4}px;height:${n.h+6}px;text-align:${n.al};font:${n.fw} ${n.fs}px/${n.h+6}px -apple-system,'SF Pro Text',system-ui,sans-serif;color:rgb(${n.c})">${n.s}</div>`).join('')}
+  ${s.hdr?`<div class="glh">${img(V12+'uh-g.png',375,40,'gl')}</div>`:''}</div>`).join('')}</div>`};
+const RX=['like','love','support','haha','wow','sad','angry'],RXT=['Like','Love','Care','Haha','Wow','Sad','Angry'];
+/* glimmer → component (21, 28): Blueprint's own glimmer pulses, then the real component resolves in place */
+const gsw=(g,gw,gh,r,rw,rh,align='center')=>`<div class="swap gsw" style="width:${rw}px;height:${rh}px"><div class="base" style="justify-items:${align}">${img(g,gw,gh,'gl')}</div><div class="alt">${img(r,rw,rh)}</div></div>`;
+
+/* Content. key: {h, u:[w,h] units, set: Blueprint component set (4a), b: build, pad, bg: card|white|none, fam: never on screen with the same fam (6)} */
+const C={
+ thread:{u:[4,6],set:'Comment',b:'stack',bg:'card',h:`<div class="stack" style="position:relative;width:375px">${[1,2,3,4].map(i=>img(V16+'r'+i+'.png',375,[82,254,102,82][i-1])).join('')}
+   <svg class="tl" width="60" height="110" style="position:absolute;left:0;top:0;pointer-events:none;opacity:0;transition:opacity .35s var(--out-bold)"><path d="M31.25 44 V83 Q31.25 94 42.25 94 H56" fill="none" stroke="#3E4042" stroke-width="1.5"/></svg>
+   <div class="bpress ghost" data-press="like" style="left:114px;top:42px;width:28px;height:24px"></div></div>`},
+ barsA:{u:[4,3],set:'Bar chart · blue',b:'chart',bg:'card',h:chartHTML('barsA'),fam:'bar'},
+ barsB:{u:[4,3],set:'Bar chart · horizontal, purple',b:'chart',bg:'card',h:chartHTML('barsB'),fam:'bar'},
+ pbcA:{u:[4,2],set:'Progress Bar Chart · blue',b:'chart',bg:'card',h:chartHTML('pbcA'),fam:'pbc'},
+ pbcB:{u:[4,2],set:'Progress Bar Chart · star rating',b:'chart',bg:'card',h:chartHTML('pbcB'),fam:'pbc'},
+ lineA:{u:[4,3],set:'Line chart · green',b:'chart',bg:'card',h:chartHTML('lineA'),fam:'line'},
+ lineB:{u:[4,3],set:'Line chart · teal',b:'chart',bg:'card',h:chartHTML('lineB'),fam:'line'},
+ donutA:{u:[4,3],set:'Donut Chart · 2 points side, orange',b:'chart',bg:'card',h:chartHTML('donutA'),fam:'donut'},
+ donutB:{u:[4,3],set:'Donut Chart · pink',b:'chart',bg:'card',h:chartHTML('donutB'),fam:'donut'},
+ ufi:{u:[4,3],set:'Responsive post footer (UFI) + reaction picker (Love)',b:'ufi',bg:'card',h:`<div class="rx"><div class="dock">${RX.map((r,i)=>`<div class="ri" data-r="${i}"><b>${RXT[i]}</b>${img(V11+'rx/'+r+'.png',40,40)}</div>`).join('')}</div>
+   <div class="ufiw">${img(V11+'ufi.png',186,44,'def')}${img(V15+'ufi-love.png',186,44,'haha')}<div class="uprs"></div></div></div>`},
+ bling:{u:[4,1],set:'Bling Bar + Inline Reactions',b:'bling',bg:'card',h:`<div class="bl">${img(V12+'bling-0-b.png',375,36,'bb')}${img(V12+'bling-0-f.png',375,36,'bf')}<div class="bpop"></div><div class="tick" style="left:46px;top:9.5px;width:50px;height:17px"><i>214</i><i>215</i></div></div>`},
+ pill:{u:[4,1],set:'Tab bar (pill)',bg:'none',pad:16,h:`<div class="swap" data-act="pill" style="border-radius:999px">${img(V+'pill-home.png',376,60,'base')}${img(V+'pill-market.png',376,60,'alt')}<div class="bpress" data-press="tab" style="left:194px;top:8px;width:44px;height:44px;border-radius:50%"></div></div>`},
+ cmp:{u:[4,2],set:'Composer',b:'type',bg:'card',h:`<div style="position:relative;width:375px;height:56px">${img(V+'cmp.png',375,56)}<div class="typecover" style="position:absolute;background:#3B3D3E;left:22px;top:14px;width:216px;height:28px"></div></div>`},
+ ntf:{u:[4,2],set:'Notification Cell',b:'stack',bg:'card',h:`<div class="stack">${img(V+'ntf.png',375,96)}</div>`},
+ fp:{u:[4,1],set:'Context Row (+ its glimmer)',b:'gsw',bg:'card',h:gsw(V11+'glim-ctxrow.png',375,36,V+'fp.png',375,36)},
+ facepile:{u:[4,1],set:'Facepile (+ Facepile_Glimmer)',b:'gsw',bg:'card',h:gsw(V12+'facepile-g.png',136,40,V12+'facepile.png',375,40,'start')},
+ listcell:{u:[4,2],set:'List Cell (+ List cell_Glimmer)',b:'gsw',bg:'card',h:gsw(V12+'listcell-g.png',375,48,V12+'listcell.png',375,76)},
+ media:{u:[4,3],set:'Media Tile (+ Media Tile Glimmer) · Julie\'s July landscapes',b:'gsw',bg:'card',h:gsw(V12+'media-g.png',375,248,V15+'media15.png',375,247)},
+ glim:{u:[4,2],set:'Contextual Message (+ its Glimmer)',b:'glim',bg:'none',pad:19,h:`<div class="swap glim" style="width:383px;height:165px" data-act="ctx"><div class="base" style="display:grid;place-items:center;height:165px">${img(V+'glim-ctx.png',375,102,'shadow gl')}</div><div class="alt">${img(V+'ctx.png',383,165)}<div class="bunder" style="left:28px;top:99px;width:327px;height:36px"></div><div class="bpress" style="left:28px;top:99px;width:327px;height:36px;background:url(${V}ctx.png) -28px -99px"></div></div></div>`},
+ star:{u:[3,2],set:'Star Rating Display',b:'star',bg:'card',h:`<div class="star">${img(V12+'star-0.png',175,55)}${[0,1,2,3,4].map(j=>`<div class="sx" style="left:${20*j}px;top:22px;background:url(${V12}star-5.png) -${20*j}px -22px"></div>`).join('')}
+   <div class="cv" data-count="5.0" style="left:102px;top:21px;width:28px;height:18px;font:400 15px/18px -apple-system,'SF Pro Text',system-ui,sans-serif;color:rgb(${HI})">5.0</div>${img(V12+'star-5.png',175,55,'sfull')}</div>`},
+ hang:{u:[4,5],set:'Post (Julie prototype) · hanging card',b:'hang',bg:'none',h:`<div class="hang">${img(V15+'hang-post.png',295,477)}</div>`},
+ wm:{u:[4,2],set:'brand: wordmark',bg:'white',fam:'fbmark',h:img(BP+'fb-wordmark.png',240,43)},
+ mosaic:{u:[4,3],set:'brand: bento in a bento',b:'mosaic',bg:'none',h:`<div class="mo"><div class="m1">${img(FB+'care-still.webp',56,56,'p')}</div><div class="m2">${img(FB+'badge-chat.webp',96,96,'p')}</div><div class="m3">${img(FB+'like-still.webp',96,96,'p')}</div><div class="m4">${img(FB+'rock-on-still.webp',100,100,'p')}</div></div>`},
+ voice:{u:[5,2],set:'Messenger composer · talk to text (Julie prototype)',fam:'msgr',b:'voice',bg:'white',h:vid('clips/voice3.mp4',444,72,`<div class="wave">${['quiet','speech','loud'].map(n=>img(BP+'wbar-'+n+'.png',226,23)).join('')}</div><div style="position:absolute;left:398px;top:28px;width:36px;height:36px;background:#fff;display:grid;place-items:center">${img(V15+'send-filled-24.png',24,24)}</div><div class="bpress light" data-press="mic" style="left:160px;top:31px;width:36px;height:36px;border-radius:50%"></div>`,'data-hold="1"')},
+ keys:{u:[5,8],set:'Messenger composer · keyboard (placeholder, dark)',fam:'msgr',bg:'none',pad:68,cls:'dark-ph',h:vid('clips/keys-ns.mp4',404,740,`<div style="position:absolute;left:372px;top:313px;width:36px;height:36px;background:#000;display:grid;place-items:center">${img(V15+'send-filled-24.png',24,24)}</div>`)},
+ b1:{u:[4,4],set:'brand clip',bg:'none',pad:26,h:vid('clips/brand-1.mp4',376,376)},
+ b2:{u:[5,3],set:'brand clip',bg:'none',pad:44,h:vid('clips/brand-2.mp4',452,228)},
+ bheart:{u:[5,3],set:'brand clip',bg:'none',h:vid('clips/burst-heart.mp4',492,268)},
+ bwow:{u:[5,4],set:'brand clip',bg:'none',h:vid('clips/burst-wow.mp4',492,380)},
+ brain:{u:[5,4],set:'brand clip',bg:'none',h:vid('clips/burst-rainbow.mp4',492,380)},
+ bfire:{u:[5,4],set:'brand clip',bg:'none',h:vid('clips/burst-fire.mp4',492,380)},
+ blike:{u:[3,3],set:'brand clip',bg:'none',h:vid('clips/burst-like.mp4',268,268)},
+ taper:{u:[2,2],set:'brand refresh tile',bg:'none',pad:12,h:vid('clips/br-taper.mp4',180,180)},
+ word:{u:[2,2],set:'brand refresh tile',bg:'none',pad:12,fam:'fbmark',h:vid('clips/br-word.mp4',180,180)},
+ fac:{u:[2,2],set:'brand refresh tile',bg:'none',pad:12,h:vid('clips/br-fac.mp4',180,180)},
+ sw:{u:[1,1],set:'.Switch',bg:'none',pad:17,h:`<div class="swap" style="width:58px;height:44px;display:grid;place-items:center" data-act="switch"><div class="base pressable" style="display:grid;place-items:center">${img(V+'switch-off.png',58,44)}</div><div class="alt pressable" style="display:grid;place-items:center">${img(V+'switch-on.png',53,36)}</div><div class="bpress" data-press="switch" style="left:2px;top:4px;width:53px;height:36px;border-radius:999px"></div></div>`},
+ ring:{u:[1,1],set:'Progress Ring',bg:'none',pad:30,h:img(V+'ring.png',32,32)},
+ /* v15 (11/11): the brand bento is back (care · f · rock-on · like · fa); a full screen from the mosaic both ways round, they share stills */
+ bento:{u:[4,3],set:'brand: bento board',b:'mosaic',bg:'none',h:`<div class="bo"><div class="b1">${img(FB+'care-still.webp',56,56,'p')}</div><div class="b2">${img(V15+'f-logo.png',72,72,'p')}</div><div class="b3">${img(FB+'like-still.webp',96,96,'p')}</div><div class="b4">${img(FB+'rock-on-still.webp',120,120,'p')}</div><div class="b5"><span class="p" style="position:absolute;inset:0"><i></i></span></div></div>`},
+ /* app icons together in one small container (11/11) */
+ appsA:{u:[2,2],set:'app',b:'apps',bg:'card',pad:12,h:`<div class="apps">${['claude','figma','cursor','xcode'].map(a=>img(BP+'app-'+a+'.png',80,80,'pop','border-radius:18px')).join('')}</div>`},
+ appsB:{u:[2,2],set:'app',b:'apps',bg:'card',pad:12,h:`<div class="apps">${['testflight','simulator','terminal','slack'].map(a=>img(BP+'app-'+a+'.png',80,80,'pop','border-radius:18px')).join('')}</div>`},
+ /* glimmer-only boxes (11/11): Blueprint's own glimmers, pulsing on a loop */
+ gctx:{u:[4,2],set:'Contextual Message_Glimmer',b:'gonly',bg:'none',pad:26,h:img(V15+'g-ctxmsg.png',375,152,'gl shadow')},
+ gaction:{u:[4,1],set:'Action cell_Glimmer',b:'gonly',bg:'none',pad:17,h:img(V15+'g-action.png',375,58,'gl shadow')},
+ gbtn:{u:[4,1],set:'Button Group_Glimmer',b:'gonly',bg:'card',h:img(V15+'g-btn.png',343,36,'gl')},
+ gfp:{u:[4,1],set:'Facepile_Glimmer · stack',b:'gonly',bg:'card',h:img(V15+'g-fpstack.png',328,40,'gl')},
+ gtext:{u:[2,1],set:'Text Pairing_Glimmer',b:'gonly',bg:'card',pad:8,h:img(V15+'g-text.png',188,42,'gl')},
+ 'g-pp':{u:[1,1],set:'Profile photo_Glimmer',b:'gonly',bg:'none',pad:10,h:img(V15+'g-pp72.png',72,72,'gl','border-radius:12px')},
+ 'g-sw':{u:[1,1],set:'Right Add On_Glimmer · switch',b:'gonly',bg:'card',pad:12,h:img(V15+'g-switch.png',51,31,'gl')},
+ 'g-cib':{u:[1,1],set:'Right Add On_Glimmer · icon button',b:'gonly',bg:'card',pad:12,h:img(V15+'g-cib.png',32,32,'gl')},
+ /* the send icon (11/11): outline, then it fills in; and the filled icon at 12, 16 and 24 */
+ sendfill:{u:[1,1],set:'Icon · send (outline → filled)',b:'sendfill',bg:'card',pad:12,h:`<div class="swap" style="width:24px;height:24px">${img(V15+'send-outline-24.png',24,24,'base')}${img(V15+'send-filled-24.png',24,24,'alt')}</div>`},
+ sendsizes:{u:[2,1],set:'Icon · send 12 · 16 · 24',b:'apps',bg:'card',pad:12,h:`<div class="ico">${[12,16,24].map(z=>img(V15+'send-filled-'+z+'.png',z,z,'pop')).join('')}</div>`},
+};
+/* Julie's July landscapes (no people): 2×2 photo tiles and 1×1 thumbnails, each picture used in one size only */
+for(const p of ['valley','tuscany','cliffs','fjord','sunset'])C['ph-'+p]={u:[2,2],set:'photo',b:'pop',bg:'none',pad:12,h:img(V15+'photo/'+p+'-180@2x.jpg',180,180,'pop photo')};
+for(const p of ['roofs','peaks','cypress','clouds'])C['ph-'+p]={u:[1,1],set:'photo',b:'pop',bg:'none',pad:6,h:img(V15+'photo/'+p+'-80@2x.jpg',80,80,'pop photo')};
+/* one small tile per app (rule 5); icons are @2x exports shown at 80. Second set of four: TestFlight, Simulator, Terminal, Slack (1) */
+for(const a of ['claude','figma','cursor','xcode','testflight','simulator','terminal','slack'])C['app-'+a]={u:[1,1],set:'app',b:'pop',bg:'none',pad:6,h:img(BP+'app-'+a+'.png',80,80,'pop','border-radius:18px')};
+/* Slide Reactions (Comments-Wall 15:4762): the seven 40 px reactions, each its own small static tile (11/10) */
+for(const r of ['like','love','haha','care','wow','sad','angry'])C['sr-'+r]={u:[1,1],set:'slide reaction',b:'pop',bg:'none',pad:26,h:img('v13/slide/'+r+'.png',40,40,'pop')};
+const ST={hex:['glyph-hexstar',64],sta:['star-still',72],uni:['unicorn-still',80],croc:['croc-still',80],fire:['fire',72],wow:['wow',72],love:['love',72],check:['badge-check',64],map:['map',72],market:['glyph-market',64],aheart:['ava-heart',80],abuns:['ava-buns',80]};
+for(const [k,[f,s]] of Object.entries(ST))C[k]={u:[1,1],set:'sticker',b:'pop',bg:'none',pad:(92-s)/2,h:img(FB+f+'.webp',s,s,'pop')};
+
+/* Loop: 46 units of 9 rows. [key, x, y] in units. v15: no cell is left empty (window.__emptyTiles must be 0).
+   keys ↔ voice and word ↔ wordmark sit at least one screen apart both ways round the loop (6). */
+/* v14: looping tiles (videos, the bling string) never touch, not even at a corner or across the loop seam (11/10) */
+/* v15 (11/11): no box is ever empty. Every cell holds a real piece; the 1×1 pieces are spread so each appears twice, half a loop apart. */
+const COLS=[
+ {w:5,it:[['keys',0,0]]},
+ {w:4,it:[['barsA',0,0],['thread',0,3]]},
+ {w:2,it:[['word',0,0],['ph-valley',0,2]]},
+ {w:4,it:[['lineA',0,0],['ntf',0,3],['gctx',0,5],['bling',0,7],['facepile',0,8]]},
+ {w:4,it:[['pbcA',0,0],['glim',0,2],['ufi',0,4],['pill',0,7],['fp',0,8]]},
+ {w:4,it:[['donutA',0,0],['listcell',0,3],['bento',0,5]]},
+ {w:5,it:[['voice',0,0],['media',0,2],['appsB',0,5],['ph-tuscany',2,5],['taper',0,7],['sendsizes',2,7],['gtext',2,8]]},
+ {w:4,it:[['barsB',0,0],['hang',0,3],['gfp',0,8]]},
+ {w:5,it:[['wm',0,0],['lineB',0,2],['star',0,5],['cmp',0,7]]},
+ {w:5,it:[['pbcB',0,0],['gbtn',0,2],['bwow',0,3],['ph-fjord',0,7],['ph-cliffs',2,7]]},
+ {w:4,it:[['donutB',0,0],['mosaic',0,3],['ph-sunset',0,6],['appsA',2,6],['gaction',0,8]]},
+];
+/* small pieces: placed twice, half a loop apart (rule 4); sw and ring once. EXTRA fills any cell still open, once each. */
+const SMALL=['sr-like','ph-roofs','g-pp','uni','sr-love','sendfill','fire','ph-peaks','sr-haha','g-sw','croc','sr-care','ph-cypress','abuns','sr-wow','sr-sad','ph-clouds','sr-angry'];
+const ONCE=['sw','ring','g-cib','sta','market','hex','love','wow','aheart','check','map'];
+(()=>{const free=[];let x0=0;const cx=COLS.map(c=>{const v=x0;x0+=c.w;return v});const LW=x0,H=LW/2;
+ COLS.forEach((col,ci)=>{const occ=[...Array(ROWS)].map(()=>Array(col.w).fill(0));
+  for(const [k,ux,uy] of col.it){const [uw,uh]=C[k].u;for(let r=uy;r<uy+uh;r++)for(let q=ux;q<ux+uw;q++)if(r<ROWS&&q<col.w)occ[r][q]=1}
+  for(let q=0;q<col.w;q++)for(let r=0;r<ROWS;r++)if(!occ[r][q])free.push({ci,q,r,x:cx[ci]+q})});
+ const used=new Set(),put=(k,f)=>{used.add(f);COLS[f.ci].it.push([k,f.q,f.r])};
+ const cd=(a,b)=>{const d=Math.abs(a-b)%LW;return Math.min(d,LW-d)};
+ /* pair cell i with cell i+F/2 in loop order: each pair sits at least a screen apart both ways round */
+ free.sort((a,b)=>a.x-b.x||a.r-b.r);const M=Math.floor(free.length/2),pairs=[];
+ for(let i=0;i<M;i++)if(cd(free[i].x,free[i+M].x)>=18)pairs.push([free[i],free[i+M]]);
+ SMALL.forEach((k,i)=>{const pr=pairs[i];if(!pr){console.warn('no pair for',k);return}put(k,pr[0]);put(k,pr[1])});
+ /* every cell still open gets a piece shown once */
+ let e=0;for(const f of free)if(!used.has(f)&&e<ONCE.length)put(ONCE[e++],f);
+ window.__open=free.filter(f=>!used.has(f)).length;window.__free=free.map(f=>f.x).join(',');
+})();
+
+const track=document.getElementById('track');
+const VW=()=>innerWidth,VH=()=>innerHeight;
+const TOP=()=>Math.round((VH()-px(ROWS))/2);
+let cols=[],loopW=0;
+function makeTile(k,uw,uh){const el=document.createElement('div');el.className='t';const W=px(uw),H=px(uh);el.style.width=W+'px';el.style.height=H+'px';
+ const t={k,el,w:W,h:H,state:0,gen:0};if(k){el.dataset.k=k;el.dataset.gen='0'}
+ if(k){const c=C[k],p=c.pad??PAD;const inn=document.createElement('div');inn.className='in'+(c.bg==='card'?' card':'')+(c.bg==='none'?' bare':'')+(c.cls?' '+c.cls:'');
+  if(c.bg==='white'){inn.classList.add('wm')}
+  Object.assign(inn.style,{left:p+'px',top:p+'px',width:(W-2*p)+'px',height:(H-2*p)+'px'});
+  inn.innerHTML=`<div class="c">${c.h}</div>`;el.appendChild(inn);}
+ return t}
+function buildLoop(){let x=0;
+ for(const col of COLS){const el=document.createElement('div');el.className='col';const tiles=[];const occ=[...Array(ROWS)].map(()=>Array(col.w).fill(0));
+  const place=(t,ux,uy)=>{t.el.style.left=ux*(U+G)+'px';t.el.style.top=uy*(U+G)+'px';t.ux=ux;el.appendChild(t.el);tiles.push(t)};
+  for(const [k,ux,uy] of col.it){const [uw,uh]=C[k].u;for(let r=uy;r<uy+uh;r++)for(let q=ux;q<ux+uw;q++){if(r>=ROWS||q>=col.w||occ[r][q])console.warn('overlap/out',k);else occ[r][q]=1}place(makeTile(k,uw,uh),ux,uy)}
+  for(let r=0;r<ROWS;r++)for(let q=0;q<col.w;q++){if(occ[r][q])continue;occ[r][q]=1;place(makeTile(null,1,1),q,r)}
+  const w=px(col.w);track.appendChild(el);cols.push({el,x,w,tiles});x+=w+G}
+ loopW=x}
+
+const later=(t,ms,fn)=>{const g=t.gen;setTimeout(()=>{if(t.gen===g)fn()},ms)};
+const anim=(t,dur,ease,fn)=>{const g=t.gen,t0=performance.now();return new Promise(res=>{const st=now=>{if(t.gen!==g)return res();const p=Math.min(1,(now-t0)/dur);fn(ease(p));p<1?requestAnimationFrame(st):res()};requestAnimationFrame(st)})};
+const quart=p=>1-Math.pow(1-p,4);
+function fmt(final,p){const m=final.match(/^(\D*)([\d,]*\.?\d+)(\D*)$/);if(!m)return final;const[,pre,num,suf]=m;
+ const dec=(num.split('.')[1]||'').length,target=parseFloat(num.replace(/,/g,''));let v=Math.min(target,target*p);
+ let s=v.toFixed(dec);if(num.includes(',')){const[i,d]=s.split('.');s=i.replace(/\B(?=(\d{3})+(?!\d))/g,',')+(d?'.'+d:'')}return pre+s+suf}
+const setCount=(el,p)=>{el.textContent=fmt(el.dataset.count,p)};
+const lift=els=>els.forEach(e=>e.style.display='none');
+const COUNT_MS=1600;  /* SYSTEM GAP fallback: duration.cinematic; count tokens not in the kit yet */
+const GLIM_MS=2000;   /* glimmer hold before the component resolves */
+
+let popQ=0,popT=0;
+const BUILD={
+ stack(t,fast){const st=t.el.querySelector('.stack');[...st.children].filter(c=>c.tagName==='IMG').forEach((c,i)=>later(t,fast?0:i*300,()=>{c.classList.add('on');if(i===1){const l=st.querySelector('.tl');if(l)l.style.opacity=1}}))},
+ pop(t,fast){const p=t.el.querySelector('.pop');const now=performance.now();if(now-popT>600)popQ=0;popT=now;const d=0;later(t,d,()=>p.classList.add('on'))},
+ type(t,fast){const cv=t.el.querySelector('.typecover');if(fast){cv.style.display='none';return}
+  cv.style.display='';const n=30;let i=0;const step=()=>{i++;cv.style.clipPath=`inset(0 0 0 ${Math.round(216*i/n)}px)`;if(i<n)later(t,55,step)};later(t,250,step)},
+ mosaic(t,fast){const ps=[...t.el.querySelectorAll('.p')];if(fast){ps.forEach(p=>p.classList.add('on'));return}ps.forEach((p,i)=>later(t,i*300,()=>p.classList.add('on')))},
+ chart(t,fast){const root=t.el.querySelector('.chart'),S=CH[root.dataset.ch],states=[...root.querySelectorAll('.cst')];let i=0;
+  const show=(k,first)=>{states.forEach((e,j)=>e.classList.toggle('on',j===k));const st=states[k],s=S[k],ovs=[...st.querySelectorAll('.ov')],cvs=[...st.querySelectorAll('.cv')],gh=st.querySelector('.glh');
+   const setR=(j,p)=>{const r=s.rv[j],o=ovs[j];if(r.t==='lr'){const x=r.x0+(r.x1-r.x0)*p;o.style.clipPath=`inset(${r.y0}px ${s.w-x}px ${s.h-r.y1}px ${r.x0}px)`}
+     else if(r.t==='up'){const y=r.y1-(r.y1-r.y0)*p;o.style.clipPath=`inset(${y}px ${s.w-r.x1}px ${s.h-r.y1}px ${r.x0}px)`}
+     else{const m=p>=1?'none':`conic-gradient(#000 ${p*360}deg, transparent ${p*360}deg)`;o.style.webkitMaskImage=m;o.style.maskImage=m}};
+   cvs.forEach(c=>{c.style.display='';setCount(c,fast?1:0)});
+   if(gh)gh.classList.toggle('off',fast||!first);
+   if(fast){s.rv.forEach((r,j)=>setR(j,1));lift(cvs);return}
+   s.rv.forEach((r,j)=>setR(j,0));
+   const d0=first&&gh?GLIM_MS:0;later(t,d0,()=>{if(gh)gh.classList.add('off');
+    if(s.seq){/* v15 (11/11): one bar after another; each bar's number counts up with it, the legend counts across the whole build */
+     const BAR=1100,own=cvs.filter(c=>c.dataset.r!=null),rest=cvs.filter(c=>c.dataset.r==null);
+     s.rv.forEach((r,j)=>later(t,j*BAR,()=>{const mine=own.filter(c=>+c.dataset.r===j);anim(t,BAR,quart,p=>{setR(j,p);mine.forEach(c=>setCount(c,p))}).then(()=>lift(mine))}));
+     anim(t,BAR*s.rv.length,quart,p=>rest.forEach(c=>setCount(c,p))).then(()=>lift(rest));return}
+    s.rv.forEach((r,j)=>later(t,j*300,()=>anim(t,COUNT_MS,quart,p=>setR(j,p))));
+    const tot=COUNT_MS+(s.rv.length-1)*300;anim(t,tot,quart,p=>cvs.forEach(c=>setCount(c,p))).then(()=>{if(states[k].classList.contains('on'))lift(cvs)})})};
+  show(0,true);if(S.length>1){const cyc=()=>{i=(i+1)%S.length;show(i,false);later(t,5200,cyc)};later(t,fast?3000:5200+GLIM_MS,cyc)}},
+ ufi(t){},
+ gsw(t,fast){const g=t.el.querySelector('.gsw');later(t,fast?0:2400,()=>g.classList.add('b'))},
+ glim(t,fast){const g=t.el.querySelector('.glim');later(t,fast?0:2400,()=>g.classList.add('b'))},
+ voice(t,fast){const v=t.el.querySelector('video'),w=t.el.querySelector('.wave'),box=t.el.querySelector('.vbox');
+  /* waits on the mic (16): a cursor taps it to record; if no cursor comes, it starts by itself */
+  const ready=()=>{v.pause();v.currentTime=1.6;box.dataset.wait='1'};if(v.readyState>0)ready();else v.addEventListener('loadedmetadata',ready,{once:true});
+  later(t,fast?0:7000,()=>{if(box.dataset.wait==='1'){box.dataset.wait='0';v.play().catch(()=>{})}});
+  if(w)wave(t,w)},
+ star(t,fast){const s=t.el.querySelector('.star'),sx=[...s.querySelectorAll('.sx')],cv=s.querySelector('.cv');
+  if(fast){sx.forEach(e=>{e.style.opacity=1;e.style.transform='none'});s.classList.add('done');lift([cv]);return}
+  setCount(cv,0);later(t,350,()=>{sx.forEach((e,j)=>later(t,j*260,()=>e.classList.add('on')));
+   anim(t,4*260+520,quart,p=>setCount(cv,p)).then(()=>{s.classList.add('done');later(t,220,()=>lift([cv]))})})},
+ bling(t,fast){const b=t.el.querySelector('.bl'),bb=b.querySelector('.bb'),bf=b.querySelector('.bf'),pop=b.querySelector('.bpop'),tk=b.querySelector('.tick');let k=0;
+  const run=()=>{bb.src=V12+'bling-'+k+'-b.png';bf.src=V12+'bling-'+k+'-f.png';b.classList.remove('fin');pop.classList.remove('go');tk.classList.remove('go');
+   tk.style.display='';tk.classList.remove('mv');pop.style.background=`url(${V12}bling-${k}-f.png) -44px -10px`;
+   later(t,700,()=>{pop.classList.add('go');tk.classList.add('mv','go');
+    later(t,650,()=>{b.classList.add('fin');later(t,160,()=>{tk.style.display='none'})});
+    later(t,3200,()=>{k=(k+1)%7;run()})})};
+  run()},
+ apps(t,fast){const ps=[...t.el.querySelectorAll('.pop')];ps.forEach((p,i)=>later(t,fast?0:i*250,()=>p.classList.add('on')))},
+ gonly(t){},
+ sendfill(t,fast){const w=t.el.querySelector('.swap');later(t,fast?0:1200,()=>w.classList.add('b'))},
+ hang(t,fast){const h=t.el.querySelector('.hang');h.classList.remove('go');if(!fast)later(t,120,()=>h.classList.add('go'))},
+};
+function wave(t,w){const L=[...w.children].filter(e=>e.tagName==='IMG'),v=t.el.querySelector('video');const seq=[0,0,1,1,2,1,2,2,1,0,1,2,2,1,1,0,1,2,1,0];let j=0;
+ const tick=()=>{const tm=v?v.currentTime:0,on=!v.paused&&tm>=2.4&&tm<=6.9;w.classList.toggle('on',on);if(on){const lv=seq[j++%seq.length];L.forEach((m,i)=>m.classList.toggle('on',i===lv))}later(t,150,tick)};tick()}
+
+function reset(t){t.gen++;t.state=0;t.el.classList.remove('glow','built','warm','loading');
+ t.el.querySelectorAll('.on').forEach(e=>e.classList.remove('on'));t.el.querySelectorAll('.swap').forEach(e=>e.classList.remove('b'));
+ t.el.querySelectorAll('.cv').forEach(e=>{e.style.display='';e.textContent=e.dataset.count});
+ const tl=t.el.querySelector('.tl');if(tl)tl.style.opacity=0;
+ const cv=t.el.querySelector('.typecover');if(cv){cv.style.display='';cv.style.clipPath=''}
+ t.el.querySelectorAll('video').forEach(v=>{v.pause();v.currentTime=0});
+ t.el.querySelectorAll('.rx').forEach(r=>{r.className='rx';r.querySelectorAll('.ri').forEach(i=>i.classList.remove('h'))});
+ t.el.querySelectorAll('.star').forEach(s=>{s.classList.remove('done');s.querySelectorAll('.sx').forEach(e=>{e.style.opacity='';e.style.transform=''})});
+ t.el.querySelectorAll('.glh').forEach(g=>g.classList.remove('off'));
+ t.el.dataset.gen=t.gen}
+let warmN=0;
+/* calm motion (11/10): at most two tiles build at the same time; the rest wait their turn in the order they arrived */
+const SLOT={apps:1400,sendfill:1600,gonly:300,stack:1500,type:2000,mosaic:1200,chart:3600,gsw:2600,glim:2600,voice:600,star:2000,bling:1400,hang:1600,ufi:400};
+const MAXQ=3;let active=0;const queue=[];
+function pump(){while(active<MAXQ&&queue.length){const t=queue.shift();if(t.state!==1)continue;const c=C[t.k];active++;start(t);setTimeout(()=>{active--;pump()},600+(SLOT[c.b]||800))}}
+function start(t){t.state=2;const e=t.el;if(++warmN%9===0)e.classList.add('warm');e.classList.add('glow');later(t,300,()=>go(t,false))}
+function go(t,fast){const e=t.el,c=C[t.k];e.classList.add('built');e.querySelectorAll('.vbox:not([data-hold]) video').forEach(v=>{v.currentTime=0;v.play().catch(()=>{})});if(c.b&&BUILD[c.b])BUILD[c.b](t,fast)}
+const LOADS=new Set(['gsw','glim','chart','gonly']);   /* tiles with a Blueprint glimmer show it from the moment they arrive */
+function enter(t,fast){if(fast){t.state=2;go(t,true);return}if(LOADS.has(C[t.k].b))t.el.classList.add('loading');if(C[t.k].b==='pop'){start(t);return}   /* small static tiles just pop; they never hold a slot */
+ t.state=1;queue.push(t);pump()}
+
+/* cursors (16, 29): one on screen at a time, a person may come back, each action once per tile entry.
+   The arrow's tip is the hit point: the cursor is placed so the tip lands on the control's centre. */
+const TIP=[8,7];   /* tip of the Figma arrow at 1.5× */
+const PEOPLE={julie:['Julie','#1ABCFE'],adam:['Adam','#A259FF'],charlie:['Charlie','#FF7262'],eduardo:['Eduardo','#0ACF83'],jeremy:['Jeremy','#A259FF'],josh:['Josh','#F5B400','#1A1A1A']};
+const pressFx=(el,sel,ms=260)=>{const b=el.querySelector(sel)||el.closest('.c').querySelector(sel);if(!b)return;b.classList.add('down');setTimeout(()=>b.classList.remove('down'),ms)};
+const tap=(pt,fn,hold=1400)=>[{pt,dur:1800,hold,down:true,act:fn}];
+const ACTS=[
+ {who:'julie',find:'[data-act="switch"]',steps:el=>tap([29,22],()=>{pressFx(el,'[data-press="switch"]');el.querySelectorAll('.pressable').forEach(p=>{p.classList.add('down');setTimeout(()=>p.classList.remove('down'),200)});setTimeout(()=>el.classList.toggle('b'),120)})},
+ {who:'adam',find:'.t[data-k="voice"] .vbox[data-wait="1"]',steps:el=>tap([178,49],()=>{pressFx(el,'[data-press="mic"]',300);const v=el.querySelector('video');el.dataset.wait='0';setTimeout(()=>v.play().catch(()=>{}),160)})},
+ {who:'eduardo',find:'.rx',steps:el=>{const hl=i=>{el.classList.add('hi');el.querySelectorAll('.ri').forEach((r,j)=>r.classList.toggle('h',j===i))};
+   const cx=i=>2.5+1+6+20+46*i,cy=200-44-4-26;
+   return [{pt:[40,178],dur:1800,hold:0,down:true,act:()=>{el.classList.add('pr');setTimeout(()=>el.classList.add('open'),350)}},
+     {pt:[40,178],dur:500,hold:0},
+     {pt:[cx(0),cy],dur:420,hold:400,act:()=>hl(0)},
+     {pt:[cx(1),cy],dur:360,hold:900,act:()=>hl(1)},
+     {pt:[cx(1),cy],dur:10,hold:700,up:true,act:()=>{el.classList.add('closing','sel');el.classList.remove('open','pr','hi');setTimeout(()=>{el.classList.remove('closing');el.querySelectorAll('.ri').forEach(r=>r.classList.remove('h'))},160)}}]}},
+ {who:'jeremy',find:'.glim.b .alt',steps:el=>tap([191,117],()=>pressFx(el,'.bpress',240))},
+ {who:'charlie',find:'[data-act="pill"]',steps:el=>tap([216,30],()=>{pressFx(el,'[data-press="tab"]');setTimeout(()=>el.classList.toggle('b'),120)})},
+ {who:'josh',find:'.t[data-k="thread"] .stack',steps:el=>tap([128,54],()=>{pressFx(el,'[data-press="like"]');const p=document.createElement('img');p.src=FB+'love.webp';p.className='rpop';p.style.left='128px';p.style.top='32px';el.appendChild(p);requestAnimationFrame(()=>p.classList.add('go'));setTimeout(()=>p.remove(),1300)})},
+];
+const svg=c=>`<svg viewBox="0 0 24 24"><path d="M3 2l17 9.2-7.4 1.9L9.6 20z" fill="${c}" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
+let actIdx=0,busy=false;
+function nextCursor(){if(busy)return;
+ for(let n=0;n<ACTS.length;n++){const a=ACTS[(actIdx+n)%ACTS.length];const [name,color,ink]=PEOPLE[a.who];const key='done'+a.who+((actIdx+n)%ACTS.length);
+  const el=[...document.querySelectorAll(a.find)].find(e=>{const t=e.closest('.t');if(!t||!t.classList.contains('built'))return false;if(t.dataset[key]===t.dataset.gen)return false;const r=e.getBoundingClientRect();return r.left>140&&r.right<VW()-460&&r.top>60&&r.bottom<VH()-110});
+  if(!el)continue;
+  actIdx=(actIdx+n+1)%ACTS.length;const tile=el.closest('.t');tile.dataset[key]=tile.dataset.gen;busy=true;run(el,a.steps(el),name,color,a.who,ink);return}}
+function run(el,steps,name,color,who,ink='#fff'){
+ const c=document.createElement('div');c.className='cur';c.style.setProperty('--cc',color);c.innerHTML=`<img src="v13/cur/${who}.svg" alt=""><i></i><b style="background:${color};color:${ink}">${name}</b>`;document.body.appendChild(c);
+ const at=pt=>{const r=el.getBoundingClientRect();return [r.left+pt[0]-TIP[0],r.top+pt[1]-TIP[1]]};
+ const [fx,fy]=at(steps[0].pt);const dl=fx,dr=VW()-fx,dt=fy,db=VH()-fy,m=Math.min(dl,dr,dt,db);
+ const edge=m===dl?[-520,fy]:m===dr?[VW()+60,fy]:m===dt?[fx,-140]:[fx,VH()+60];
+ const ease=t=>1-Math.pow(1-t,3),easeIn=t=>t*t*t,inout=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+ let si=0,t0=performance.now(),from=null,phase='move';const OUT=1400;
+ function frame(now){
+  if(si<steps.length){const s=steps[si];const to=at(s.pt);const f=from?at(from):edge;const e=now-t0;
+   if(phase==='move'){const k=Math.min(1,e/s.dur),q=si===0?ease(k):inout(k);c.style.transform=`translate(${f[0]+(to[0]-f[0])*q}px,${f[1]+(to[1]-f[1])*q}px)`;
+    if(k>=1){phase='hold';t0=now;if(s.down){c.classList.add('press');c.querySelector('i').classList.add('go')}if(s.up)c.classList.remove('press');else if(s.down&&steps.length===1)setTimeout(()=>c.classList.remove('press'),180);if(s.act)s.act()}}
+   else{c.style.transform=`translate(${to[0]}px,${to[1]}px)`;if(e>=s.hold){from=s.pt;si++;t0=now;phase='move'}}
+   requestAnimationFrame(frame);return}
+  const e=now-t0,p=at(from),k=easeIn(Math.min(1,e/OUT));
+  /* v15: leave straight out the way it came, from where the cursor is now (no hook as the wall moves under it) */
+  const ex=edge[1]===fy?[edge[0],p[1]]:[p[0],edge[1]];c.style.transform=`translate(${p[0]+(ex[0]-p[0])*k}px,${p[1]+(ex[1]-p[1])*k}px)`;
+  if(k<1)requestAnimationFrame(frame);else{c.remove();setTimeout(()=>{busy=false},700)}}
+ requestAnimationFrame(frame)}
+setInterval(nextCursor,400);
+
+/* motion: one sheet, right to left, 0.06 screen heights a second, whole device pixels */
+let x=+(new URLSearchParams(location.search).get('x')||0),last=performance.now();   /* ?x= start offset for review captures */
+buildLoop();
+function place(){const top=TOP();for(const c of cols)c.el.style.transform=`translate(${c.x}px,${top}px)`}
+place();
+for(const c of cols)for(const t of c.tiles)if(t.k){const tx=c.x-x+parseFloat(t.el.style.left);if(tx>=0&&tx+t.w<=VW())enter(t,!LOADS.has(C[t.k].b))}
+function frame(now){const dt=Math.min(.25,(now-last)/1000);last=now;x+=SPEED_H*VH()*dt;
+ const d=devicePixelRatio||1;track.style.transform=`translate3d(${-Math.round(x*d)/d}px,0,0)`;
+ for(const c of cols){
+  if(c.x+c.w-x<-40){c.x+=loopW;c.el.style.transform=`translate(${c.x}px,${TOP()}px)`;c.tiles.forEach(reset)}
+  const sx=c.x-x;
+  for(const t of c.tiles){if(!t.k||t.state)continue;const tx=sx+parseFloat(t.el.style.left);
+   if(tx<VW()&&LOADS.has(C[t.k].b))t.el.classList.add('loading');   /* v15: a glimmer shows as soon as its box slides in */
+   if(tx>=0&&tx+t.w<=VW())enter(t,false)}}
+ requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+addEventListener('resize',place);
+
+/* checks: 4a (each Blueprint set once in the loop), 7/20 (no component wider or taller than its tile), 6 (families a screen apart both ways) */
+(()=>{const seen={},pos={},fit=[];for(const c of cols)for(const t of c.tiles)if(t.k){const s=C[t.k].set;if(C[t.k].u[0]>1&&!/sticker|app|brand clip|brand refresh|slide reaction|photo/.test(s))seen[s]=(seen[s]||0)+1;
+  const inn=t.el.querySelector('.in'),cc=inn.firstElementChild.firstElementChild;if(cc){const W=cc.offsetWidth,H=cc.offsetHeight;if(W>inn.offsetWidth+1||H>inn.offsetHeight+1)fit.push([t.k,W,H,inn.offsetWidth,inn.offsetHeight])}
+  const f=C[t.k].fam;if(f)(pos[f]=pos[f]||[]).push([t.k,c.x+parseFloat(t.el.style.left),t.w])}
+ const dup=Object.entries(seen).filter(([,n])=>n>1);window.__components=seen;window.__fit=fit;if(dup.length)console.warn('REPEATED COMPONENT',dup);if(fit.length)console.warn('DOES NOT FIT',fit);
+ const fam=[];for(const [f,L] of Object.entries(pos))for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const[a,ax,aw]=L[i],[b,bx,bw]=L[j];
+  const lo=ax<bx?[ax,aw]:[bx,bw],hi=ax<bx?[bx,bw]:[ax,aw];const g1=hi[0]-(lo[0]+lo[1]),g2=loopW-(hi[0]+hi[1])+lo[0];fam.push([f,a,b,g1,g2,Math.min(g1,g2)>=VW()])}
+ const LOOP=k=>/<video/.test(C[k].h)||C[k].b==='bling';const L=[];for(const c of cols)for(const t of c.tiles)if(t.k&&LOOP(t.k)){const x=c.x+parseFloat(t.el.style.left),y=parseFloat(t.el.style.top);L.push([t.k,x,y,t.w,t.h])}
+ const touch=[];for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const a=L[i],b=L[j];for(const sh of [0,loopW,-loopW]){const gx=Math.max(b[1]+sh-(a[1]+a[3]),a[1]-(b[1]+sh+b[3])),gy=Math.max(b[2]-(a[2]+a[4]),a[2]-(b[2]+b[4]));if(gx<U&&gy<U)touch.push([a[0],b[0]])}}
+ const pos2={};for(const c of cols)for(const t of c.tiles)if(t.k&&C[t.k].u[0]===1)(pos2[t.k]=pos2[t.k]||[]).push(c.x+parseFloat(t.el.style.left));
+ const near=Object.entries(pos2).filter(([k,v])=>v.length>1&&Math.min(Math.abs(v[1]-v[0]),loopW-Math.abs(v[1]-v[0]))<VW()+U).map(([k])=>k);window.__smallNear=near;
+ window.__loops=touch;window.__emptyTiles=cols.reduce((n,c)=>n+c.tiles.filter(t=>!t.k).length,0);if(touch.length)console.warn('looping tiles touch',touch);
+ window.__families=fam;window.__loopW=loopW;fam.filter(r=>!r[5]).forEach(r=>console.warn('same family can share the screen',r))})();
+</script></body></html>
