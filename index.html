@@ -516,6 +516,8 @@ html[data-paused] .breathe::after { animation-play-state: paused; }
 .tq-track { display: flex; align-items: stretch; transition: transform var(--ck-motion-duration-standard) var(--ck-motion-easing-standard); }
 .tq-track figure { flex: 0 0 100%; min-width: 0; margin: 0; padding: 0 clamp(8px, 3vw, 48px); display: grid; align-content: center; gap: var(--ck-space-4); }
 .tq blockquote { margin: 0; font: italic 400 var(--subtitle)/1.22 var(--font-display); color: var(--mist); text-wrap: balance; }
+.tq-pager .ck-pager-count { display: none; }   /* 11/11 (Julie): dots only */
+.tq-pager { inline-size: 100%; display: grid; justify-items: center; }   /* full width, so all the dots fit */
 .tq figcaption { display: grid; gap: var(--ck-space-1); } .tq figcaption b { font-weight: 500; color: var(--mist); font-size: 15px; } .tq figcaption span { color: var(--dusk); font-size: 13px; }
 @media (prefers-reduced-motion: reduce) { .tq-track { transition-duration: var(--ck-motion-duration-reduced); } }
 /* Chapter 3 POV slides (Julie, 10/26): on phones clear the pager bar, and the two stacked step lists read as one */
@@ -3498,7 +3500,8 @@ html[data-motion="reduce"] .tax-step .tg-c { transition-duration: var(--ck-motio
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches, HOLD = 6000;
   let i = 0, timer = null, paused = false, visible = false;
   slides.forEach((s, k) => { s.setAttribute('aria-roledescription', 'slide'); s.setAttribute('aria-label', (k + 1) + ' of ' + slides.length); });
-  const pager = window.CadencePager(car.querySelector('.tq-pager'), { items: slides.length, noun: 'Testimonial', onGo: k => { go(k); restart(); } });
+  const pager = window.CadencePager(car.querySelector('.tq-pager'), { items: slides.length, noun: 'Testimonial', arrows: false, lineCells: 1, liquid: true,
+    pitchToken: '--ck-board-pitch', dotToken: '--ck-board-dot', onGo: k => { go(k); restart(); } });   /* 11/11 (Julie): rail dots, rail liquid, dots only */
   function go(k){
     i = (k + slides.length) % slides.length;
     track.style.transform = 'translateX(' + (-100 * i) + '%)';
