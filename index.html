@@ -3634,11 +3634,11 @@ b, strong { font-weight: 500; }
 @media (max-width: 760px), (max-height: 500px) { .intro-hero .ih-depth { display: none; } }
 @media (prefers-reduced-motion: reduce) { .intro-hero .ih-fl { transform: translate(-50%, -50%) rotate(var(--r)); } }
 .title-open.ih-measure h1, .title-open.ih-measure h1 * { animation: none !important; transform: none !important; transition: none !important; }
-/* Name blocks (11/11 v2): same build as the chapter numerals, one block per Redaction 50 pixel */
+/* Name blocks (11/11 v3): one block per Redaction 50 pixel, fading in left to right from 0 to 100% opacity (Julie, 11/11) */
 .title-open .ih-blocks { position: absolute; inset: 0; pointer-events: none; z-index: 2; transition: opacity var(--t-s) var(--ease); }
-.title-open .ih-blocks i { position: absolute; background: var(--c); opacity: 0; transform: scale(.4); box-shadow: 0 0 12px color-mix(in srgb, var(--c) 25%, transparent);
-  transition: opacity var(--t-s) var(--ease), transform var(--t-s) var(--ease); }
-.title-open .ih-blocks i.on { opacity: .92; transform: none; }
+.title-open .ih-blocks i { position: absolute; background: var(--c); opacity: 0; box-shadow: 0 0 12px color-mix(in srgb, var(--c) 25%, transparent);
+  transition: opacity 520ms cubic-bezier(.33, 0, .2, 1); }
+.title-open .ih-blocks i.on { opacity: 1; }
 .title-open.ih-built .ih-blocks { opacity: 0; }
 html.has-intro .title-open.ih-built h1 .b, html.has-intro .title-open.ih-built h1 .l { animation: none; }
 html.has-intro .title-open:not(.ih-built) h1 { visibility: hidden; }
@@ -4317,9 +4317,10 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;if(e.isInt
         const px = Math.round((x + u / 2) * S), py = Math.round((y + u / 2) * S); if (px >= cv.width || py >= cv.height) continue;
         if (d[(py * cv.width + px) * 4 + 3] < 128) continue;
         const e = document.createElement('i'); e.style.cssText = `left:${(r.left - tr.left + x).toFixed(2)}px;top:${(r.top - tr.top + y).toFixed(2)}px;width:${u.toFixed(2)}px;height:${u.toFixed(2)}px;--c:${col}`;
-        frag.appendChild(e); blocks.push(e); }
+        e._x = r.left + x; e._y = r.top + y; frag.appendChild(e); blocks.push(e); }
     });
     t.classList.remove('ih-measure');
+    blocks.sort((a, b) => a._x - b._x || a._y - b._y);   /* left to right across both lines */
     layer.appendChild(frag); done = false; t.classList.remove('ih-built');
   };
   const step = () => {
@@ -4330,7 +4331,7 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;if(e.isInt
     else for (let i = want; i < shown; i++) blocks[i].classList.remove('on');
     shown = want;
     const full = want === blocks.length && Math.abs(r.top) < 2;
-    if (full && !done) { done = true; setTimeout(() => { if (!done) return; t.classList.add('ih-built'); t.classList.remove('in'); void t.offsetWidth; t.classList.add('in'); }, 420); }
+    if (full && !done) { done = true; setTimeout(() => { if (!done) return; t.classList.add('ih-built'); t.classList.remove('in'); void t.offsetWidth; t.classList.add('in'); }, 600); }
     else if (!full && done) { done = false; t.classList.remove('ih-built'); }
   };
   const loop = () => { step(); requestAnimationFrame(loop); };
