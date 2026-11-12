@@ -3648,7 +3648,7 @@ b, strong { font-weight: 500; }
 .intro-hero.ih-pin .ih-cap { max-width: min(34ch, 44vw); }
 .intro-hero .ih-steps { display: grid; }
 .intro-hero .ih-step { grid-area: 1 / 1; align-self: end; }
-.intro-hero .ih-say { font-family: var(--font-body); font-size: var(--body); line-height: 1.45; color: var(--mist); margin: .8em 0 0; text-wrap: pretty; }
+.intro-hero .ih-say { font: 400 clamp(13px, 1vw, 16px)/1.45 var(--font-body); color: var(--mist); margin: 1em 0 0; text-wrap: pretty; } /* same size as the What I did line (.role), Julie 11/12 */
 @media (max-width: 760px), (max-height: 500px) { .intro-hero.ih-pin .ih-cap { max-width: 90vw; } }
 .intro-hero .ih-cap > * { opacity: var(--ih-c, 0); transform: translateY(calc((1 - var(--ih-c, 0)) * 12px)); }
 @media (max-width: 760px), (max-height: 500px) { .intro-hero .ih-fig { width: 92vw; top: 42%; } .intro-hero .ih-cap { max-width: 90vw; } .intro-hero.ih-left .ih-cap { margin-left: 0; text-align: left; } }
