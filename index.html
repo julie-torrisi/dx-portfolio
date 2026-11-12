@@ -3639,7 +3639,7 @@ b, strong { font-weight: 500; }
 .title-open .ih-blocks { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 .title-open .ih-blocks i { position: absolute; background: var(--c); opacity: 0; box-shadow: 0 0 10px color-mix(in srgb, var(--c) 22%, transparent); }
 .title-open[data-build="drop"] .ih-blocks i { transform: translateY(calc(var(--u) * -7)); }
-.title-open[data-build="drop"] .ih-blocks i.on { opacity: 1; transform: none; transition: transform 210ms steps(7, end), opacity 0s; }
+.title-open[data-build="drop"] .ih-blocks i.on { opacity: 1; transform: none; transition: transform 280ms steps(7, end), opacity 0s; }
 .title-open[data-build="pop"] .ih-blocks i.on { opacity: 1; animation: ih-flash 140ms steps(1, end); }
 @keyframes ih-flash { 0% { background: #fff; } 50% { background: var(--c); } }
 .title-open.ih-built .ih-blocks { opacity: 0; }
@@ -4331,13 +4331,13 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;if(e.isInt
     layer.appendChild(frag); done = false; t.classList.remove('ih-built');
   };
   let t0 = 0;
-  const DUR = 1100;   /* 8-bit title beat */
+  const DUR = 2200;   /* 8-bit title beat, slow enough to read every brick (Julie, 11/11) */
   const step = () => {
     if (!blocks.length) return;
     const r = t.getBoundingClientRect(), landed = Math.abs(r.top) < innerHeight * .04;
     if (!landed) { if (shown) { blocks.forEach(e => e.classList.remove('on')); shown = 0; } t0 = 0; if (done) { done = false; t.classList.remove('ih-built'); } return; }
     if (!t0) t0 = performance.now();
-    const k = clamp((performance.now() - t0) / DUR, 0, 1), want = Math.round(Math.floor(k * 24) / 24 * blocks.length);   /* 24 stepped frames */
+    const k = clamp((performance.now() - t0) / DUR, 0, 1), want = Math.round(Math.floor(k * 30) / 30 * blocks.length);   /* 30 stepped frames */
     for (let i = shown; i < want; i++) blocks[i].classList.add('on'); shown = Math.max(shown, want);
     if (k >= 1 && !done) { done = true; setTimeout(() => { if (!done) return; t.classList.add('ih-built'); t.classList.remove('in'); void t.offsetWidth; t.classList.add('in'); }, 300); }
   };
