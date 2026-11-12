@@ -1013,7 +1013,7 @@ section[data-slide-id="directive"] .qt-note { font: 400 var(--meta)/1.4 var(--fo
 <div class="ih-cap"><p class="meta">04 · Small things</p><p class="ih-text">My joy is tech balanced with the tactile. I respect busy lives by giving people only what they need.</p></div>
 <div class="notes"><b>Talk track · voice-over only</b><ul><li>Everything we make is for people in the real world. They’re busy, so it has to give them what they need and respect their time.</li></ul></div>
 </section>
-<section data-pass class="slide title-open" data-build="drop" data-act="Open" data-dim=".2" data-silk="ember">
+<section data-pass class="slide title-open" data-act="Open" data-dim=".2" data-silk="ember">
 
 <div class="stack">
 <h1 class="d-xxl reveal"><span class="b">Julie</span><br/><span class="l">Torrisi-Coffey</span></h1>
@@ -3635,15 +3635,13 @@ b, strong { font-weight: 500; }
 @media (max-width: 760px), (max-height: 500px) { .intro-hero .ih-depth { display: none; } }
 @media (prefers-reduced-motion: reduce) { .intro-hero .ih-fl { transform: translate(-50%, -50%) rotate(var(--r)); } }
 .title-open.ih-measure h1, .title-open.ih-measure h1 * { animation: none !important; transform: none !important; transition: none !important; }
-/* Name blocks (11/11 v4): an 8-bit game title. One block per Redaction 50 pixel, no smooth fades, everything moves in hard steps.
-   drop = bricks fall in column by column and stack. pop = pixels snap on in a dithered sweep with a one-frame white flash. */
+/* Name blocks (11/11 v5): pixel headline. Each Redaction 50 pixel is a square that flies in and assembles, steps aside from the
+   pointer and springs back; a few shimmer in the other accent colour. The real h1 stays in the page (transparent) for screen readers. */
 .title-open .ih-blocks { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
-.title-open .ih-blocks i { position: absolute; background: var(--c); opacity: 0; box-shadow: 0 0 10px color-mix(in srgb, var(--c) 22%, transparent); }
-.title-open[data-build="drop"] .ih-blocks i { transform: translateY(calc(var(--u) * -7)); }
-.title-open[data-build="drop"] .ih-blocks i.on { opacity: 1; transform: none; transition: transform 280ms steps(7, end), opacity 0s; }
-.title-open[data-build="pop"] .ih-blocks i.on { opacity: 1; animation: ih-flash 140ms steps(1, end); }
-@keyframes ih-flash { 0% { background: #fff; } 50% { background: var(--c); } }
-.title-open.ih-built .ih-blocks { opacity: 0; }
+.title-open .ih-blocks i { position: absolute; background: var(--c); opacity: 0; will-change: transform, opacity; transition: background-color 260ms linear; }
+.title-open .ih-blocks i.sh { background: var(--a); }
+html.has-intro .title-open.has-blocks h1 { visibility: visible !important; }
+html.has-intro .title-open.has-blocks h1 .b, html.has-intro .title-open.has-blocks h1 .l { color: transparent !important; text-shadow: none !important; animation: none !important; }
 html.has-intro .title-open.ih-built h1 .b, html.has-intro .title-open.ih-built h1 .l { animation: none; }
 html.has-intro .title-open:not(.ih-built) h1 { visibility: hidden; }
 html.has-intro .title-open:not(.ih-built) .subtitle { opacity: 0; }
@@ -4320,27 +4318,45 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{const v=e.target;if(e.isInt
         const x = i * u, y = y0 + j * u - u; if (y < 0) continue;
         const px = Math.round((x + u / 2) * S), py = Math.round((y + u / 2) * S); if (px >= cv.width || py >= cv.height) continue;
         if (d[(py * cv.width + px) * 4 + 3] < 128) continue;
-        const e = document.createElement('i'); e.style.cssText = `left:${(r.left - tr.left + x).toFixed(2)}px;top:${(r.top - tr.top + y).toFixed(2)}px;width:${u.toFixed(2)}px;height:${u.toFixed(2)}px;--c:${col}`;
+        const e = document.createElement('i'); e.style.cssText = `--a:${sp.classList.contains('b') ? 'var(--lilac, #A873FF)' : 'var(--blue, #3C88FF)'};left:${(r.left - tr.left + x).toFixed(2)}px;top:${(r.top - tr.top + y).toFixed(2)}px;width:${u.toFixed(2)}px;height:${u.toFixed(2)}px;--c:${col}`;
         e._x = r.left + x; e._y = r.top + y; frag.appendChild(e); blocks.push(e); }
     });
     t.classList.remove('ih-measure');
-    const span = Math.max(1, Math.max(...blocks.map(b => b._x)) - Math.min(...blocks.map(b => b._x)));
-    if ((t.dataset.build || 'drop') === 'pop') blocks.forEach(b => b._k = b._x + Math.random() * span * .22);   /* dithered sweep, left to right */
-    else blocks.forEach(b => b._k = b._x + (b._y % 7) * .01);                                                    /* column by column, bricks stack */
-    blocks.sort((a, b) => a._k - b._k || b._y - a._y);
+    const W = innerWidth, H = innerHeight;
+    blocks.forEach(b => {                      /* every pixel gets a scatter point and a start time; left letters land first */
+      const ang = Math.random() * Math.PI * 2, dist = (.35 + Math.random() * .65) * Math.max(W, H) * .55;
+      b._sx = Math.cos(ang) * dist; b._sy = Math.sin(ang) * dist * .7; b._sr = (Math.random() - .5) * 220;
+      b._hx = b._x - tr.left; b._hy = b._y - tr.top; b._ox = 0; b._oy = 0; });
+    const xs = blocks.map(b => b._x), x0 = Math.min(...xs), xw = Math.max(1, Math.max(...xs) - x0);
+    blocks.forEach(b => b._d = (b._x - x0) / xw * 650 + Math.random() * 350);
     blocks.forEach(b => b.style.setProperty('--u', u.toFixed(2) + 'px'));
-    layer.appendChild(frag); done = false; t.classList.remove('ih-built');
+    layer.appendChild(frag); t.classList.add('has-blocks'); done = false; t.classList.remove('ih-built');
   };
-  let t0 = 0;
-  const DUR = 2200;   /* 8-bit title beat, slow enough to read every brick (Julie, 11/11) */
+  /* Pixel headline (11/11 v5, after the 21st.dev pixel-headline): pixels fly in and assemble when the title lands,
+     step aside from the pointer and spring back, and a few shimmer in the other accent colour. */
+  let t0 = 0, mx = -1e4, my = -1e4, lastSh = 0;
+  const FLY = 950, eo = k => 1 - Math.pow(1 - k, 4);
+  addEventListener('pointermove', e => { const r = t.getBoundingClientRect(); mx = e.clientX - r.left; my = e.clientY - r.top; }, { passive: true });
+  document.addEventListener('pointerleave', () => { mx = my = -1e4; });
   const step = () => {
     if (!blocks.length) return;
-    const r = t.getBoundingClientRect(), landed = Math.abs(r.top) < innerHeight * .04;
-    if (!landed) { if (shown) { blocks.forEach(e => e.classList.remove('on')); shown = 0; } t0 = 0; if (done) { done = false; t.classList.remove('ih-built'); } return; }
-    if (!t0) t0 = performance.now();
-    const k = clamp((performance.now() - t0) / DUR, 0, 1), want = Math.round(Math.floor(k * 30) / 30 * blocks.length);   /* 30 stepped frames */
-    for (let i = shown; i < want; i++) blocks[i].classList.add('on'); shown = Math.max(shown, want);
-    if (k >= 1 && !done) { done = true; setTimeout(() => { if (!done) return; t.classList.add('ih-built'); t.classList.remove('in'); void t.offsetWidth; t.classList.add('in'); }, 300); }
+    const r = t.getBoundingClientRect(), landed = Math.abs(r.top) < innerHeight * .04, now = performance.now();
+    if (!landed) { if (t0) { t0 = 0; done = false; t.classList.remove('ih-built'); blocks.forEach(e => { e.style.opacity = 0; }); } return; }
+    if (!t0) t0 = now;
+    const el = now - t0, R = blocks[0] ? parseFloat(blocks[0].style.width) * 9 : 80;
+    let all = true;
+    for (const b of blocks) {
+      const k = clamp((el - b._d) / FLY, 0, 1); if (k < 1) all = false;
+      const e = eo(k), dx = mx - b._hx, dy = my - b._hy, d = Math.hypot(dx, dy);
+      let tx = 0, ty = 0; if (k === 1 && d < R) { const f = (1 - d / R) * R * .55; tx = -dx / (d || 1) * f; ty = -dy / (d || 1) * f; }
+      b._ox += (tx - b._ox) * .18; b._oy += (ty - b._oy) * .18;          /* step aside, spring back */
+      const px = b._sx * (1 - e) + b._ox, py = b._sy * (1 - e) + b._oy, rot = b._sr * (1 - e);
+      b.style.transform = `translate(${px.toFixed(1)}px,${py.toFixed(1)}px) rotate(${rot.toFixed(1)}deg)`;
+      b.style.opacity = Math.min(1, k * 2.5).toFixed(2);
+    }
+    if (all && now - lastSh > 140) { lastSh = now;                         /* shimmer: a few pixels at a time */
+      for (let i = 0; i < 4; i++) { const b = blocks[(Math.random() * blocks.length) | 0]; b.classList.add('sh'); setTimeout(() => b.classList.remove('sh'), 520); } }
+    if (all && !done) { done = true; t.classList.add('ih-built'); t.classList.remove('in'); void t.offsetWidth; t.classList.add('in'); }
   };
   const loop = () => { step(); requestAnimationFrame(loop); };
   (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => { layout(); requestAnimationFrame(loop); });
