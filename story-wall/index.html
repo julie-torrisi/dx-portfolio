@@ -65,6 +65,9 @@ html,body{margin:0;height:100%;background:var(--wall);overflow:hidden}
 .wave{position:absolute;left:109px;top:36px;width:226px;height:23px;background:#0C5CFF;opacity:0;transition:opacity .15s}
 .wave.on{opacity:1}.wave>img{position:absolute;left:0;top:0;opacity:0;transition:opacity .09s linear}.wave>img.on{opacity:1}
 .rpop{position:absolute;pointer-events:none;width:44px;height:44px;opacity:0}
+.t[data-k="voice"] .vbox{transform:translateY(-10px)}   /* 11/12: the clip's controls sit 10px below its frame centre; lift so the composer is centred in the white card */
+.jlike{position:absolute;left:303px;top:43px;width:24px;height:22px;background:var(--card);display:grid;place-items:center;opacity:0;transform:scale(.6);transition:opacity .12s linear,transform .35s var(--spring)}.jlike.on{opacity:1;transform:none}
+.jtick{font-size:14px;z-index:3}.stack>.jtick.on{clip-path:none}.jlike{z-index:3}
 .rpop.go{animation:rpop 1.1s var(--spring) forwards}
 @keyframes rpop{0%{opacity:0;transform:translate(-50%,0) scale(.3)}25%{opacity:1;transform:translate(-50%,-26px) scale(1.15)}70%{opacity:1;transform:translate(-50%,-34px) scale(1)}100%{opacity:0;transform:translate(-50%,-44px) scale(.9)}}
 /* cursors: one at a time, slow enough to read (16) */
@@ -172,8 +175,8 @@ const CH={
  bars:[
   ...[[248,216,[['40%',26,27],['43%',139,27],['17%',235,24]]],[204,172,[['40%',26,27],['44%',125,27],['16%',224,25]]],[228,196,[['44%',26,27],['36%',111,27],['20%',210,26]]]].map(([h,base,leg],i)=>(
    {img:V12+'bar-'+i+'.png',e:V12+'bar-'+i+'-e.png',w:375,h,hdr:1,rv:GROUPS.map(([a,b])=>({t:'up',x0:a,x1:b,y0:88,y1:base})),n:leg.map(([s,x,w])=>NL(s,x,51,w,8,12,HI))})),
-  {img:V12+'bar-3.png',e:V12+'bar-3-e.png',w:375,h:210,hdr:1,rv:[107,149,191].map(y=>({t:'lr',x0:12,x1:276,y0:y,y1:y+11})),
-   n:[NL('48%',26,51,27,8,12,HI),NL('33%',129,51,27,8,12,HI),NL('19%',235,51,25,8,12,HI),{...NL('12,480',291,107,48,11,15,HI,'right'),r:0},{...NL('10,215',292,149,45,11,15,HI,'right'),r:1},{...NL('8,532',291,191,40,11,15,HI,'right'),r:2}],seq:1}],
+  {img:V12+'bar-3r.png',e:V12+'bar-3re.png',w:375,h:210,hdr:1,rv:[107,149,191].map(y=>({t:'lr',x0:12,x1:276,y0:y,y1:y+11})),
+   n:[NL('48%',26,51,27,8,12,HI),NL('33%',129,51,27,8,12,HI),NL('19%',235,51,25,8,12,HI),{...NL('12,480',291,107,48,11,15,HI,'right'),r:0},{...NL('10,215',294,149,45,11,15,HI,'right'),r:1},{...NL('8,532',299,191,40,11,15,HI,'right'),r:2}],seq:1}],
  pbc:PBC_V.map((vals,i)=>({img:V12+'pbc-'+i+'.png',e:V12+'pbc-'+i+'-e.png',w:375,h:PBC_H[i],rv:vals.map((v,r)=>({t:'lr',x0:77,x1:310,y0:13+23*r,y1:22+23*r})),
    n:vals.map((v,r)=>NL(v,318,12+23*r,44,12,15,LO,'right'))})),
  line:[[36,327],[43,320],[36,327],[43,320],[43,320],[44,319]].map(([x,w],i)=>({img:V12+'line-'+i+'.png',e:V12+'line-'+i+'-e.png',w:375,h:192,hdr:1,rv:[{t:'lr',x0:x-4,x1:x+w+4,y0:56,y1:152}],n:[]})),
@@ -196,7 +199,7 @@ const gsw=(g,gw,gh,r,rw,rh,align='center')=>`<div class="swap gsw" style="width:
 const C={
  thread:{u:[4,6],set:'Comment',b:'stack',bg:'card',h:`<div class="stack" style="position:relative;width:375px">${[1,2,3,4].map(i=>img(V16+'r'+i+'.png',375,[82,254,102,82][i-1])).join('')}
    <svg class="tl" width="60" height="110" style="position:absolute;left:0;top:0;pointer-events:none;opacity:0;transition:opacity .35s var(--out-bold)"><path d="M31.25 44 V83 Q31.25 94 42.25 94 H56" fill="none" stroke="#3E4042" stroke-width="1.5"/></svg>
-   <div class="bpress ghost" data-press="like" style="left:114px;top:42px;width:28px;height:24px"></div></div>`},
+   <div class="bpress ghost" data-press="like" style="left:301px;top:41px;width:28px;height:24px"></div><div class="jlike"><svg viewBox="0 0 24 24" width="16" height="16"><path fill="#0866FF" d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg></div><div class="tick jtick" style="left:143px;top:45px;width:26px;height:17px"><i>52</i><i>53</i></div></div>`},
  barsA:{u:[4,3],set:'Bar chart · blue',b:'chart',bg:'card',h:chartHTML('barsA'),fam:'bar'},
  barsB:{u:[4,3],set:'Bar chart · horizontal, purple',b:'chart',bg:'card',h:chartHTML('barsB'),fam:'bar'},
  pbcA:{u:[4,2],set:'Progress Bar Chart · blue',b:'chart',bg:'card',h:chartHTML('pbcA'),fam:'pbc'},
@@ -210,7 +213,7 @@ const C={
  bling:{u:[4,1],set:'Bling Bar + Inline Reactions',b:'bling',bg:'card',h:`<div class="bl">${img(V12+'bling-0-b.png',375,36,'bb')}${img(V12+'bling-0-f.png',375,36,'bf')}<div class="bpop"></div><div class="tick" style="left:46px;top:9.5px;width:50px;height:17px"><i>214</i><i>215</i></div></div>`},
  pill:{u:[4,1],set:'Tab bar (pill)',bg:'none',pad:16,h:`<div class="swap" data-act="pill" style="border-radius:999px">${img(V+'pill-home.png',376,60,'base')}${img(V+'pill-market.png',376,60,'alt')}<div class="bpress" data-press="tab" style="left:194px;top:8px;width:44px;height:44px;border-radius:50%"></div></div>`},
  cmp:{u:[4,2],set:'Composer',b:'type',bg:'card',h:`<div style="position:relative;width:375px;height:56px">${img(V+'cmp.png',375,56)}<div class="typecover" style="position:absolute;background:#3B3D3E;left:22px;top:14px;width:216px;height:28px"></div></div>`},
- ntf:{u:[4,2],set:'Notification Cell',b:'stack',bg:'card',h:`<div class="stack">${img(V+'ntf.png',375,96)}</div>`},
+ ntf:{u:[4,2],set:'Notification Cell',b:'stack',bg:'card',h:`<div class="stack">${img(V16+'ntf.png',375,96)}</div>`},
  fp:{u:[4,1],set:'Context Row (+ its glimmer)',b:'gsw',bg:'card',h:gsw(V11+'glim-ctxrow.png',375,36,V+'fp.png',375,36)},
  facepile:{u:[4,1],set:'Facepile (+ Facepile_Glimmer)',b:'gsw',bg:'card',h:gsw(V12+'facepile-g.png',136,40,V12+'facepile.png',375,40,'start')},
  listcell:{u:[4,2],set:'List Cell (+ List cell_Glimmer)',b:'gsw',bg:'card',h:gsw(V12+'listcell-g.png',375,48,V12+'listcell.png',375,76)},
@@ -222,7 +225,7 @@ const C={
  wm:{u:[4,2],set:'brand: wordmark',bg:'white',fam:'fbmark',h:img(BP+'fb-wordmark.png',240,43)},
  mosaic:{u:[4,3],set:'brand: bento in a bento',b:'mosaic',bg:'none',h:`<div class="mo"><div class="m1">${img(FB+'care-still.webp',56,56,'p')}</div><div class="m2">${img(FB+'badge-chat.webp',96,96,'p')}</div><div class="m3">${img(FB+'like-still.webp',96,96,'p')}</div><div class="m4">${img(FB+'rock-on-still.webp',100,100,'p')}</div></div>`},
  voice:{u:[5,2],set:'Messenger composer · talk to text (Julie prototype)',fam:'msgr',b:'voice',bg:'white',h:vid('clips/voice3.mp4',444,72,`<div class="wave">${['quiet','speech','loud'].map(n=>img(BP+'wbar-'+n+'.png',226,23)).join('')}</div><div style="position:absolute;left:398px;top:28px;width:36px;height:36px;background:#fff;display:grid;place-items:center">${img(V15+'send-filled-24.png',24,24)}</div><div class="bpress light" data-press="mic" style="left:160px;top:31px;width:36px;height:36px;border-radius:50%"></div>`,'data-hold="1"')},
- keys:{u:[5,8],set:'Messenger composer · keyboard (placeholder, dark)',fam:'msgr',bg:'none',pad:68,cls:'dark-ph',h:vid('clips/keys-ns.mp4',404,740,`<div style="position:absolute;left:372px;top:313px;width:36px;height:36px;background:#000;display:grid;place-items:center">${img(V15+'send-filled-24.png',24,24)}</div>`)},
+ keys:{u:[5,8],set:'Messenger composer · keyboard (placeholder, dark)',fam:'msgr',bg:'none',pad:48,cls:'dark-ph',h:vid('clips/keys-ns.mp4',444,740,`<div style="position:absolute;left:392px;top:313px;width:36px;height:36px;background:#000;display:grid;place-items:center">${img(V15+'send-filled-24.png',24,24)}</div>`)},
  b1:{u:[4,4],set:'brand clip',bg:'none',pad:26,h:vid('clips/brand-1.mp4',376,376)},
  b2:{u:[5,3],set:'brand clip',bg:'none',pad:44,h:vid('clips/brand-2.mp4',452,228)},
  bheart:{u:[5,3],set:'brand clip',bg:'none',h:vid('clips/burst-heart.mp4',492,268)},
@@ -380,7 +383,7 @@ function wave(t,w){const L=[...w.children].filter(e=>e.tagName==='IMG'),v=t.el.q
  const tick=()=>{const tm=v?v.currentTime:0,on=!v.paused&&tm>=2.4&&tm<=6.9;w.classList.toggle('on',on);if(on){const lv=seq[j++%seq.length];L.forEach((m,i)=>m.classList.toggle('on',i===lv))}later(t,150,tick)};tick()}
 
 function reset(t){t.gen++;t.state=0;t.el.classList.remove('glow','built','warm','loading');
- t.el.querySelectorAll('.on').forEach(e=>e.classList.remove('on'));t.el.querySelectorAll('.swap').forEach(e=>e.classList.remove('b'));
+ t.el.querySelectorAll('.on').forEach(e=>e.classList.remove('on'));t.el.querySelectorAll('.swap').forEach(e=>e.classList.remove('b'));t.el.querySelectorAll('.jtick').forEach(e=>e.classList.remove('go'));
  t.el.querySelectorAll('.cv').forEach(e=>{e.style.display='';e.textContent=e.dataset.count});
  const tl=t.el.querySelector('.tl');if(tl)tl.style.opacity=0;
  const cv=t.el.querySelector('.typecover');if(cv){cv.style.display='';cv.style.clipPath=''}
@@ -418,7 +421,7 @@ const ACTS=[
      {pt:[cx(1),cy],dur:10,hold:700,up:true,act:()=>{el.classList.add('closing','sel');el.classList.remove('open','pr','hi');setTimeout(()=>{el.classList.remove('closing');el.querySelectorAll('.ri').forEach(r=>r.classList.remove('h'))},160)}}]}},
  {who:'jeremy',find:'.glim.b .alt',steps:el=>tap([191,117],()=>pressFx(el,'.bpress',240))},
  {who:'charlie',find:'[data-act="pill"]',steps:el=>tap([216,30],()=>{pressFx(el,'[data-press="tab"]');setTimeout(()=>el.classList.toggle('b'),120)})},
- {who:'josh',find:'.t[data-k="thread"] .stack',steps:el=>tap([128,54],()=>{pressFx(el,'[data-press="like"]');const p=document.createElement('img');p.src=FB+'love.webp';p.className='rpop';p.style.left='128px';p.style.top='32px';el.appendChild(p);requestAnimationFrame(()=>p.classList.add('go'));setTimeout(()=>p.remove(),1300)})},
+ {who:'josh',find:'.t[data-k="thread"] .stack',steps:el=>tap([315,53],()=>{pressFx(el,'[data-press="like"]');el.querySelector('.jlike').classList.add('on');const jt=el.querySelector('.jtick');jt.style.transition='none';jt.classList.add('on');setTimeout(()=>jt.classList.add('go'),120)})},   /* 11/12: Josh likes Theo's comment: thumb fills blue, 52 ticks to 53 */
 ];
 const svg=c=>`<svg viewBox="0 0 24 24"><path d="M3 2l17 9.2-7.4 1.9L9.6 20z" fill="${c}" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
 let actIdx=0,busy=false;
